@@ -6,7 +6,7 @@ const { messages, input, isLoading, speechMode, handleSubmit, handleMic } = useC
 </script>
 
 <template>
-  <div class="flex flex-col h-screen max-w-xl mx-auto p-4">
+  <div class="flex flex-col h-screen max-w-5xl p-4">
     <div class="flex-1 overflow-y-auto space-y-4 mb-4">
       <div v-for="(msg, i) in messages" :key="i" :class="msg.role === 'user' ? 'text-right' : 'text-left'">
         <div
@@ -22,7 +22,7 @@ const { messages, input, isLoading, speechMode, handleSubmit, handleMic } = useC
       <button type="button" @click="handleMic" class="bg-green-500 text-white px-3 py-2 rounded">🎤</button>
       <input
         v-model="input"
-        class="flex-1 border rounded px-3 py-2"
+        class="flex-1 border rounded px-3 py-2 flex-grow flex-1"
         placeholder="Type your message or use the mic..."
       />
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded" :disabled="isLoading">Send</button>

@@ -79,7 +79,7 @@ export function useSpeechHelpers(OPENAI_API_KEY: string) {
         body: JSON.stringify({
           model: "tts-1",
           input: text,
-          voice: "alloy",
+          voice: "onyx",
         }),
       })
       if (!ttsRes.ok) throw new Error("OpenAI TTS failed")
