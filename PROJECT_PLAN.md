@@ -58,9 +58,9 @@ A demo web app using Vue 3 (Typescript, Tailwind) that features an AI agent (Ope
 
 ## 6. Next Steps
 
-1. Scaffold Vue 3 + Typescript + Tailwind project
-2. Set up json-server with Orion-style endpoints and seed data
-3. Implement AI agent logic (planning, execution, confidence loop)
-4. Build chat/voice UI
-5. Integrate OpenAI API
-6. Polish and test
+- [x] Scaffold Vue 3 + Typescript + Tailwind project
+- [x] Set up json-server with Orion-style endpoints and seed data (run with `npm run mock:api`)
+- [ ] Implement AI agent logic (planning, execution, confidence loop)
+- [ ] Build chat/voice UI
+- [ ] Integrate OpenAI API
+- [ ] Polish and test
