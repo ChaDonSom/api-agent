@@ -14,11 +14,10 @@ const messages = ref<Message[]>([])
 const input = ref("")
 const isLoading = ref(false)
 
-// Placeholder: Replace with your OpenAI API key or use a proxy endpoint
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
 
-// Use 'any' for SpeechRecognitionClass and recognition to avoid TS errors
+// Speech/voice helpers
 const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 const recognition = SpeechRecognitionClass ? new SpeechRecognitionClass() : null
 const synth = window.speechSynthesis
@@ -28,14 +27,10 @@ function startListening() {
   recognition.lang = "en-US"
   recognition.start()
   recognition.onresult = (event: any) => {
-    const transcript = event.results[0][0].transcript
-    input.value = transcript
+    input.value = event.results[0][0].transcript
   }
   recognition.onend = () => {
-    // Auto-submit when user stops speaking and input is not empty
-    if (input.value.trim()) {
-      sendMessage()
-    }
+    if (input.value.trim()) sendMessage()
   }
 }
 
@@ -46,28 +41,30 @@ function speak(text: string) {
   synth.speak(utter)
 }
 
-// Add a system prompt to inform the agent about available tools
+// System prompt for agent
 function getSystemPrompt() {
-  const toolsList = apiTools
+  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${apiTools
     .map((tool) => `- ${tool.name}: ${tool.description} (\`${tool.method} ${tool.endpoint}\`)`)
-    .join("\n")
-
-  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${toolsList}\n\nYou may use each turn to either:\n- Make an API call (by outputting the call in a code block, e.g. \`\`\`GET /users\`\`\`), or\n- Think and reason about the information you already have (by outputting your reasoning in plain text).\n\nBefore making an API call, always check if you already have the needed information in the chat history. If you do, use it directly and explain your reasoning. Only make an API call if you do not already have the answer or if the data is likely to have changed.\n\nAfter each turn, wait for the user or system to provide new information or results before continuing.\n\nIf you have enough information to answer the user's question, do so clearly and concisely.`
+    .join(
+      "\n"
+    )}\n\nYou may use each turn to either:\n- Make an API call (by outputting the call in a code block, e.g. \`\`\`GET /users\`\`\`), or\n- Think and reason about the information you already have (by outputting your reasoning in plain text).\n\nBefore making an API call, always check if you already have the needed information in the chat history. If you do, use it directly and explain your reasoning. Only make an API call if you do not already have the answer or if the data is likely to have changed.\n\nAfter each turn, wait for the user or system to provide new information or results before continuing.\n\nIf you have enough information to answer the user's question, do so clearly and concisely.`
 }
 
-// Try to extract a plan from the agent's response (robust: look for code blocks or lines)
+// Extract API plan from agent response
 function extractApiPlan(text: string): ApiCallPlan | null {
-  // Look for all code blocks and extract the first valid API call
   const codeBlocks = text.match(/```[\s\S]*?```/g)
   if (codeBlocks) {
     for (const block of codeBlocks) {
-      // Remove backticks and whitespace
-      const lines = block.replace(/```/g, '').split('\n').map(l => l.trim()).filter(Boolean)
+      const lines = block
+        .replace(/```/g, "")
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean)
       for (const line of lines) {
         const match = line.match(/^(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
         if (match) {
           const method = match[1].toUpperCase() as ApiCallPlan["method"]
-          let endpoint = match[2].replace(/[`\s]+$/g, '') // Remove trailing backticks/whitespace
+          let endpoint = match[2].replace(/[`\s]+$/g, "")
           let params: Record<string, any> | undefined
           if (endpoint.includes("?")) {
             const [path, query] = endpoint.split("?")
@@ -79,11 +76,10 @@ function extractApiPlan(text: string): ApiCallPlan | null {
       }
     }
   }
-  // Fallback: look for single line
   const match = text.match(/(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
   if (match) {
     const method = match[1].toUpperCase() as ApiCallPlan["method"]
-    let endpoint = match[2].replace(/[`\s]+$/g, '')
+    let endpoint = match[2].replace(/[`\s]+$/g, "")
     let params: Record<string, any> | undefined
     if (endpoint.includes("?")) {
       const [path, query] = endpoint.split("?")
@@ -95,6 +91,7 @@ function extractApiPlan(text: string): ApiCallPlan | null {
   return null
 }
 
+// Main chat/agent loop (kept concise)
 async function sendMessage() {
   if (!input.value.trim()) return
   const userMsg = input.value.trim()
@@ -109,9 +106,8 @@ async function sendMessage() {
   ]
   let lastApiResult: any = null
   let lastPlan: ApiCallPlan | null = null
-  let maxTurns = 5 // prevent infinite loops
+  let maxTurns = 5
   let turn = 0
-  let lastConfidenceMsg = null
 
   while (continueLoop && turn < maxTurns) {
     turn++
@@ -136,7 +132,6 @@ async function sendMessage() {
     })
     const data = await res.json()
     let aiMsg = data.choices?.[0]?.message?.content || "Sorry, I could not respond."
-    // Only show API call plans and final answers to the user
     const plan = extractApiPlan(aiMsg)
     if (plan) {
       messages.value.push({ role: "assistant", content: aiMsg })
@@ -145,9 +140,7 @@ async function sendMessage() {
       loopMessages.push({ role: "assistant", content: aiMsg })
       continue
     }
-    // Don't show intermediate reasoning steps to the user
     loopMessages.push({ role: "assistant", content: aiMsg })
-    // Ask the agent directly if it has done all it can to answer the user's question
     const confidencePrompt = `Based on the chat so far, have you done all you reasonably can to answer the user's question, given the available data and tools? Reply with CONFIDENT if you have done all you can, or NOT CONFIDENT if you believe there is still something you can try. Explain briefly.`
     const confidenceRes = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -166,9 +159,7 @@ async function sendMessage() {
     })
     const confidenceData = await confidenceRes.json()
     const confidenceMsg = confidenceData.choices?.[0]?.message?.content || "NOT CONFIDENT"
-    lastConfidenceMsg = confidenceMsg
     if (!/NOT CONFIDENT/i.test(confidenceMsg)) {
-      // Agent is confident, so ask for a final summary/answer
       const summaryPrompt = `You have completed your reasoning and are confident in your answer. Please provide a clear, concise final answer to the user's original question: "${userMsg}" using all information and results from the chat so far. Only output your answer to the user, not your internal reasoning or API call details.`
       const summaryRes = await fetch(OPENAI_API_URL, {
         method: "POST",
@@ -193,11 +184,9 @@ async function sendMessage() {
       }
       continueLoop = false
     } else {
-      // Internal: do not show NOT CONFIDENT messages or intermediate reasoning to the user
       loopMessages.push({ role: "assistant", content: confidenceMsg })
     }
   }
-  // If we exit the loop without confidence, ask the agent to explain why a complete answer is not possible
   if (continueLoop) {
     const explainPrompt = `You have reached the maximum number of reasoning turns and are still NOT CONFIDENT. Please explain to the user, in clear and concise language, why a complete answer is not possible, using all information and results from the chat so far. Be transparent about any limitations (such as the data being from a mock API, or missing information). Only output your explanation to the user.`
     const explainRes = await fetch(OPENAI_API_URL, {
@@ -208,10 +197,7 @@ async function sendMessage() {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [
-          ...loopMessages,
-          { role: "system", content: explainPrompt },
-        ],
+        messages: [...loopMessages, { role: "system", content: explainPrompt }],
       }),
     })
     const explainData = await explainRes.json()

@@ -1,0 +1,1 @@
+// COPILOT RULES: All Vue components in this project must be less than 150 lines (excluding blank lines and comments). Keep logic concise and modular. If a component grows too large, refactor or extract logic/components.
