@@ -34,11 +34,34 @@ function startListening() {
   }
 }
 
-function speak(text: string) {
-  if (!synth) return
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = "en-US"
-  synth.speak(utter)
+async function speak(text: string) {
+  // Try OpenAI TTS first
+  try {
+    const ttsRes = await fetch("https://api.openai.com/v1/audio/speech", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "tts-1", // or "tts-1-hd" for higher quality if available
+        input: text,
+        voice: "alloy" // voices: alloy, echo, fable, onyx, nova, shimmer
+      }),
+    })
+    if (!ttsRes.ok) throw new Error("OpenAI TTS failed")
+    const audioBlob = await ttsRes.blob()
+    const audioUrl = URL.createObjectURL(audioBlob)
+    const audio = new Audio(audioUrl)
+    await audio.play()
+    return
+  } catch (e) {
+    // Fallback to browser TTS
+    if (!synth) return
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.lang = "en-US"
+    synth.speak(utter)
+  }
 }
 
 // System prompt for agent
