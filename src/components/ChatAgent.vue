@@ -118,17 +118,12 @@ async function sendMessage() {
     const plan = extractApiPlan(aiMsg)
     let apiResult: any = null
     if (plan) {
+      // Only show the user a message about the plan, not the result yet
+      messages.value.push({ role: "assistant", content: aiMsg })
+      // Execute the API call
       apiResult = await executeApiPlan(plan)
-      aiMsg += `\n\n[API Result]:\n${JSON.stringify(apiResult, null, 2)}`
-    }
-
-    // If we got an API result, ask the agent to summarize or answer the user's question using it
-    if (apiResult) {
-      const summaryPrompt = `You just made this API call: ${plan?.method} ${
-        plan?.endpoint
-      } and got this result: ${JSON.stringify(
-        apiResult
-      )}.\n\nBased on the user's original question: "${userMsg}", provide a clear, concise answer using the API result. Do not just paste the result, but explain or summarize as needed.`
+      // Now, ask the agent to summarize/answer using the API result
+      const summaryPrompt = `You just made this API call: ${plan?.method} ${plan?.endpoint} and got this result: ${JSON.stringify(apiResult)}.\n\nBased on the user's original question: "${userMsg}", provide a clear, concise answer using the API result. Do not just paste the result, but explain or summarize as needed. Only output your answer to the user, not your internal reasoning or the API call details.`
       const summaryRes = await fetch(OPENAI_API_URL, {
         method: "POST",
         headers: {
@@ -143,12 +138,14 @@ async function sendMessage() {
       const summaryData = await summaryRes.json()
       const summary = summaryData.choices?.[0]?.message?.content
       if (summary) {
-        aiMsg += `\n\n[Summary]:\n${summary}`
+        messages.value.push({ role: "assistant", content: summary })
+        speak(summary)
       }
+    } else {
+      // No API plan, just respond as usual
+      messages.value.push({ role: "assistant", content: aiMsg })
+      speak(aiMsg)
     }
-
-    messages.value.push({ role: "assistant", content: aiMsg })
-    speak(aiMsg)
   } catch (e) {
     messages.value.push({ role: "assistant", content: "Error contacting OpenAI." })
   } finally {
