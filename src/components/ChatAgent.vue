@@ -48,16 +48,29 @@ function speak(text: string) {
 
 // Add a system prompt to inform the agent about available tools
 function getSystemPrompt() {
-  return `You are an AI agent that can plan and execute API calls to a mock backend.\n
-Available tools (API endpoints):\n${apiTools
+  const toolsList = apiTools
     .map((tool) => `- ${tool.name}: ${tool.description} (\`${tool.method} ${tool.endpoint}\`)`)
-    .join("\n")}\n
-When you need to answer a user, you may plan a sequence of API calls, specifying endpoints, parameters, and order. Respond with your plan and results before giving your final answer.`
+    .join("\n")
+
+  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${toolsList}\n\nWhen you need to answer a user, you may plan a sequence of API calls, specifying endpoints, parameters, and order.\n\nIMPORTANT: When you want to make an API call, always output the call in a code block, e.g.:\n\`\`\`\nGET /users\n\`\`\`\nIf you need to include query parameters, include them in the URL.\nAfter the code block, explain your reasoning and then wait for the API result before continuing.`
 }
 
-// Try to extract a plan from the agent's response (simple regex for demo)
+// Try to extract a plan from the agent's response (robust: look for code blocks or lines)
 function extractApiPlan(text: string): ApiCallPlan | null {
-  // Example: "GET /users" or "GET /tasks?job_id=1"
+  // Look for code block with API call
+  const codeBlockMatch = text.match(/```[\s\S]*?(GET|POST|PUT|DELETE)\s+(\/\S+)[\s\S]*?```/i)
+  if (codeBlockMatch) {
+    const method = codeBlockMatch[1].toUpperCase() as ApiCallPlan["method"]
+    let endpoint = codeBlockMatch[2]
+    let params: Record<string, any> | undefined
+    if (endpoint.includes("?")) {
+      const [path, query] = endpoint.split("?")
+      endpoint = path
+      params = Object.fromEntries(new URLSearchParams(query))
+    }
+    return { endpoint, method, params }
+  }
+  // Fallback: look for single line
   const match = text.match(/(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
   if (match) {
     const method = match[1].toUpperCase() as ApiCallPlan["method"]
@@ -86,7 +99,6 @@ async function sendMessage() {
     ...messages.value.map((m) => ({ role: m.role, content: m.content })),
   ]
 
-  // Call OpenAI API
   try {
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -104,9 +116,35 @@ async function sendMessage() {
 
     // Try to extract and execute an API plan
     const plan = extractApiPlan(aiMsg)
+    let apiResult: any = null
     if (plan) {
-      const apiResult = await executeApiPlan(plan)
+      apiResult = await executeApiPlan(plan)
       aiMsg += `\n\n[API Result]:\n${JSON.stringify(apiResult, null, 2)}`
+    }
+
+    // If we got an API result, ask the agent to summarize or answer the user's question using it
+    if (apiResult) {
+      const summaryPrompt = `You just made this API call: ${plan?.method} ${
+        plan?.endpoint
+      } and got this result: ${JSON.stringify(
+        apiResult
+      )}.\n\nBased on the user's original question: "${userMsg}", provide a clear, concise answer using the API result. Do not just paste the result, but explain or summarize as needed.`
+      const summaryRes = await fetch(OPENAI_API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "gpt-3.5-turbo",
+          messages: [{ role: "system", content: summaryPrompt }],
+        }),
+      })
+      const summaryData = await summaryRes.json()
+      const summary = summaryData.choices?.[0]?.message?.content
+      if (summary) {
+        aiMsg += `\n\n[Summary]:\n${summary}`
+      }
     }
 
     messages.value.push({ role: "assistant", content: aiMsg })
