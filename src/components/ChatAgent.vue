@@ -52,29 +52,38 @@ function getSystemPrompt() {
     .map((tool) => `- ${tool.name}: ${tool.description} (\`${tool.method} ${tool.endpoint}\`)`)
     .join("\n")
 
-  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${toolsList}\n\nWhen you need to answer a user, you may plan a sequence of API calls, specifying endpoints, parameters, and order.\n\nIMPORTANT: When you want to make an API call, always output the call in a code block, e.g.:\n\`\`\`\nGET /users\n\`\`\`\nIf you need to include query parameters, include them in the URL.\nAfter the code block, explain your reasoning and then wait for the API result before continuing.`
+  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${toolsList}\n\nYou may use each turn to either:\n- Make an API call (by outputting the call in a code block, e.g. \`\`\`GET /users\`\`\`), or\n- Think and reason about the information you already have (by outputting your reasoning in plain text).\n\nBefore making an API call, always check if you already have the needed information in the chat history. If you do, use it directly and explain your reasoning. Only make an API call if you do not already have the answer or if the data is likely to have changed.\n\nAfter each turn, wait for the user or system to provide new information or results before continuing.\n\nIf you have enough information to answer the user's question, do so clearly and concisely.`
 }
 
 // Try to extract a plan from the agent's response (robust: look for code blocks or lines)
 function extractApiPlan(text: string): ApiCallPlan | null {
-  // Look for code block with API call
-  const codeBlockMatch = text.match(/```[\s\S]*?(GET|POST|PUT|DELETE)\s+(\/\S+)[\s\S]*?```/i)
-  if (codeBlockMatch) {
-    const method = codeBlockMatch[1].toUpperCase() as ApiCallPlan["method"]
-    let endpoint = codeBlockMatch[2]
-    let params: Record<string, any> | undefined
-    if (endpoint.includes("?")) {
-      const [path, query] = endpoint.split("?")
-      endpoint = path
-      params = Object.fromEntries(new URLSearchParams(query))
+  // Look for all code blocks and extract the first valid API call
+  const codeBlocks = text.match(/```[\s\S]*?```/g)
+  if (codeBlocks) {
+    for (const block of codeBlocks) {
+      // Remove backticks and whitespace
+      const lines = block.replace(/```/g, '').split('\n').map(l => l.trim()).filter(Boolean)
+      for (const line of lines) {
+        const match = line.match(/^(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
+        if (match) {
+          const method = match[1].toUpperCase() as ApiCallPlan["method"]
+          let endpoint = match[2].replace(/[`\s]+$/g, '') // Remove trailing backticks/whitespace
+          let params: Record<string, any> | undefined
+          if (endpoint.includes("?")) {
+            const [path, query] = endpoint.split("?")
+            endpoint = path
+            params = Object.fromEntries(new URLSearchParams(query))
+          }
+          return { endpoint, method, params }
+        }
+      }
     }
-    return { endpoint, method, params }
   }
   // Fallback: look for single line
   const match = text.match(/(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
   if (match) {
     const method = match[1].toUpperCase() as ApiCallPlan["method"]
-    let endpoint = match[2]
+    let endpoint = match[2].replace(/[`\s]+$/g, '')
     let params: Record<string, any> | undefined
     if (endpoint.includes("?")) {
       const [path, query] = endpoint.split("?")
@@ -93,13 +102,27 @@ async function sendMessage() {
   input.value = ""
   isLoading.value = true
 
-  const systemPrompt = getSystemPrompt()
-  const chatMessages = [
-    { role: "system", content: systemPrompt },
+  let continueLoop = true
+  let loopMessages = [
+    { role: "system", content: getSystemPrompt() },
     ...messages.value.map((m) => ({ role: m.role, content: m.content })),
   ]
+  let lastApiResult: any = null
+  let lastPlan: ApiCallPlan | null = null
+  let maxTurns = 5 // prevent infinite loops
+  let turn = 0
+  let lastConfidenceMsg = null
 
-  try {
+  while (continueLoop && turn < maxTurns) {
+    turn++
+    if (lastApiResult && lastPlan) {
+      loopMessages.push({
+        role: "system",
+        content: `API call result for ${lastPlan.method} ${lastPlan.endpoint}: ${JSON.stringify(lastApiResult)}`,
+      })
+      lastApiResult = null
+      lastPlan = null
+    }
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
       headers: {
@@ -108,22 +131,45 @@ async function sendMessage() {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: chatMessages,
+        messages: loopMessages,
       }),
     })
     const data = await res.json()
     let aiMsg = data.choices?.[0]?.message?.content || "Sorry, I could not respond."
-
-    // Try to extract and execute an API plan
+    // Only show API call plans and final answers to the user
     const plan = extractApiPlan(aiMsg)
-    let apiResult: any = null
     if (plan) {
-      // Only show the user a message about the plan, not the result yet
       messages.value.push({ role: "assistant", content: aiMsg })
-      // Execute the API call
-      apiResult = await executeApiPlan(plan)
-      // Now, ask the agent to summarize/answer using the API result
-      const summaryPrompt = `You just made this API call: ${plan?.method} ${plan?.endpoint} and got this result: ${JSON.stringify(apiResult)}.\n\nBased on the user's original question: "${userMsg}", provide a clear, concise answer using the API result. Do not just paste the result, but explain or summarize as needed. Only output your answer to the user, not your internal reasoning or the API call details.`
+      lastApiResult = await executeApiPlan(plan)
+      lastPlan = plan
+      loopMessages.push({ role: "assistant", content: aiMsg })
+      continue
+    }
+    // Don't show intermediate reasoning steps to the user
+    loopMessages.push({ role: "assistant", content: aiMsg })
+    // Ask the agent directly if it has done all it can to answer the user's question
+    const confidencePrompt = `Based on the chat so far, have you done all you reasonably can to answer the user's question, given the available data and tools? Reply with CONFIDENT if you have done all you can, or NOT CONFIDENT if you believe there is still something you can try. Explain briefly.`
+    const confidenceRes = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          ...loopMessages,
+          { role: "assistant", content: aiMsg },
+          { role: "system", content: confidencePrompt },
+        ],
+      }),
+    })
+    const confidenceData = await confidenceRes.json()
+    const confidenceMsg = confidenceData.choices?.[0]?.message?.content || "NOT CONFIDENT"
+    lastConfidenceMsg = confidenceMsg
+    if (!/NOT CONFIDENT/i.test(confidenceMsg)) {
+      // Agent is confident, so ask for a final summary/answer
+      const summaryPrompt = `You have completed your reasoning and are confident in your answer. Please provide a clear, concise final answer to the user's original question: "${userMsg}" using all information and results from the chat so far. Only output your answer to the user, not your internal reasoning or API call details.`
       const summaryRes = await fetch(OPENAI_API_URL, {
         method: "POST",
         headers: {
@@ -132,7 +178,11 @@ async function sendMessage() {
         },
         body: JSON.stringify({
           model: "gpt-3.5-turbo",
-          messages: [{ role: "system", content: summaryPrompt }],
+          messages: [
+            ...loopMessages,
+            { role: "assistant", content: aiMsg },
+            { role: "system", content: summaryPrompt },
+          ],
         }),
       })
       const summaryData = await summaryRes.json()
@@ -141,16 +191,37 @@ async function sendMessage() {
         messages.value.push({ role: "assistant", content: summary })
         speak(summary)
       }
+      continueLoop = false
     } else {
-      // No API plan, just respond as usual
-      messages.value.push({ role: "assistant", content: aiMsg })
-      speak(aiMsg)
+      // Internal: do not show NOT CONFIDENT messages or intermediate reasoning to the user
+      loopMessages.push({ role: "assistant", content: confidenceMsg })
     }
-  } catch (e) {
-    messages.value.push({ role: "assistant", content: "Error contacting OpenAI." })
-  } finally {
-    isLoading.value = false
   }
+  // If we exit the loop without confidence, ask the agent to explain why a complete answer is not possible
+  if (continueLoop) {
+    const explainPrompt = `You have reached the maximum number of reasoning turns and are still NOT CONFIDENT. Please explain to the user, in clear and concise language, why a complete answer is not possible, using all information and results from the chat so far. Be transparent about any limitations (such as the data being from a mock API, or missing information). Only output your explanation to the user.`
+    const explainRes = await fetch(OPENAI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [
+          ...loopMessages,
+          { role: "system", content: explainPrompt },
+        ],
+      }),
+    })
+    const explainData = await explainRes.json()
+    const explanation = explainData.choices?.[0]?.message?.content
+    if (explanation) {
+      messages.value.push({ role: "assistant", content: explanation })
+      speak(explanation)
+    }
+  }
+  isLoading.value = false
 }
 </script>
 
