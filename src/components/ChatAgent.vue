@@ -1,120 +1,26 @@
 <script setup lang="ts">
+// --- ENV CONSTANTS & CONFIG ---
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
+const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+
 import { ref } from "vue"
-import { apiTools } from "../agent-tools"
 import { executeApiPlan } from "../agent-api"
 import type { ApiCallPlan } from "../agent-api"
+import { getSystemPrompt, extractApiPlan, useSpeechHelpers } from "./chat-agent"
 
-// Message type for chat history
+// --- PRIMITIVES (refs, state, types) ---
 interface Message {
   role: "user" | "assistant"
   content: string
 }
-
 const messages = ref<Message[]>([])
 const input = ref("")
 const isLoading = ref(false)
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
-const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions"
+// --- SPEECH/VOICE HELPERS ---
+const { startListening, speak } = useSpeechHelpers(OPENAI_API_KEY)
 
-// Speech/voice helpers
-const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-const recognition = SpeechRecognitionClass ? new SpeechRecognitionClass() : null
-const synth = window.speechSynthesis
-
-function startListening() {
-  if (!recognition) return
-  recognition.lang = "en-US"
-  recognition.start()
-  recognition.onresult = (event: any) => {
-    input.value = event.results[0][0].transcript
-  }
-  recognition.onend = () => {
-    if (input.value.trim()) sendMessage()
-  }
-}
-
-async function speak(text: string) {
-  // Try OpenAI TTS first
-  try {
-    const ttsRes = await fetch("https://api.openai.com/v1/audio/speech", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "tts-1", // or "tts-1-hd" for higher quality if available
-        input: text,
-        voice: "alloy" // voices: alloy, echo, fable, onyx, nova, shimmer
-      }),
-    })
-    if (!ttsRes.ok) throw new Error("OpenAI TTS failed")
-    const audioBlob = await ttsRes.blob()
-    const audioUrl = URL.createObjectURL(audioBlob)
-    const audio = new Audio(audioUrl)
-    await audio.play()
-    return
-  } catch (e) {
-    // Fallback to browser TTS
-    if (!synth) return
-    const utter = new SpeechSynthesisUtterance(text)
-    utter.lang = "en-US"
-    synth.speak(utter)
-  }
-}
-
-// System prompt for agent
-function getSystemPrompt() {
-  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${apiTools
-    .map((tool) => `- ${tool.name}: ${tool.description} (\`${tool.method} ${tool.endpoint}\`)`)
-    .join(
-      "\n"
-    )}\n\nYou may use each turn to either:\n- Make an API call (by outputting the call in a code block, e.g. \`\`\`GET /users\`\`\`), or\n- Think and reason about the information you already have (by outputting your reasoning in plain text).\n\nBefore making an API call, always check if you already have the needed information in the chat history. If you do, use it directly and explain your reasoning. Only make an API call if you do not already have the answer or if the data is likely to have changed.\n\nAfter each turn, wait for the user or system to provide new information or results before continuing.\n\nIf you have enough information to answer the user's question, do so clearly and concisely.`
-}
-
-// Extract API plan from agent response
-function extractApiPlan(text: string): ApiCallPlan | null {
-  const codeBlocks = text.match(/```[\s\S]*?```/g)
-  if (codeBlocks) {
-    for (const block of codeBlocks) {
-      const lines = block
-        .replace(/```/g, "")
-        .split("\n")
-        .map((l) => l.trim())
-        .filter(Boolean)
-      for (const line of lines) {
-        const match = line.match(/^(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
-        if (match) {
-          const method = match[1].toUpperCase() as ApiCallPlan["method"]
-          let endpoint = match[2].replace(/[`\s]+$/g, "")
-          let params: Record<string, any> | undefined
-          if (endpoint.includes("?")) {
-            const [path, query] = endpoint.split("?")
-            endpoint = path
-            params = Object.fromEntries(new URLSearchParams(query))
-          }
-          return { endpoint, method, params }
-        }
-      }
-    }
-  }
-  const match = text.match(/(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
-  if (match) {
-    const method = match[1].toUpperCase() as ApiCallPlan["method"]
-    let endpoint = match[2].replace(/[`\s]+$/g, "")
-    let params: Record<string, any> | undefined
-    if (endpoint.includes("?")) {
-      const [path, query] = endpoint.split("?")
-      endpoint = path
-      params = Object.fromEntries(new URLSearchParams(query))
-    }
-    return { endpoint, method, params }
-  }
-  return null
-}
-
-// Main chat/agent loop (kept concise)
+// --- MAIN CHAT/AGENT LOOP (submit is last, fetch/render logic above) ---
 async function sendMessage() {
   if (!input.value.trim()) return
   const userMsg = input.value.trim()
@@ -248,7 +154,13 @@ async function sendMessage() {
       <div v-if="isLoading" class="text-center text-gray-400">Thinking...</div>
     </div>
     <form class="flex gap-2" @submit.prevent="sendMessage">
-      <button type="button" @click="startListening" class="bg-green-500 text-white px-3 py-2 rounded">🎤</button>
+      <button
+        type="button"
+        @click="() => startListening({ value: input }, sendMessage)"
+        class="bg-green-500 text-white px-3 py-2 rounded"
+      >
+        🎤
+      </button>
       <input
         v-model="input"
         class="flex-1 border rounded px-3 py-2"
