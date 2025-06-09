@@ -9,24 +9,59 @@ export function getSystemPrompt() {
 Available tools (API endpoints):
 ${apiSummary}
 
+**ADVANCED API FEATURES AVAILABLE:**
+
+**Search & Filtering:**
+- Use POST /api/v2/{resource}/search for advanced queries
+- Search body format: {"filters": [{"field": "name", "operator": "like", "value": "John"}], "sort": [{"field": "created_at", "direction": "desc"}], "search": {"value": "search term", "fields": ["name", "email"]}}
+- **IMPORTANT**: For includes in search requests, use: "includes": [{"relation": "entries"}, {"relation": "user"}]
+- Available operators: =, !=, >, <, >=, <=, like, in, not_in, between, is_null, is_not_null
+
+**Query Parameters:**
+- include: Load relationships in GET requests (e.g., ?include=user,job,tasks) - comma-separated string
+- with_count: Count related records (e.g., ?with_count=tasks,entries)
+- with_sum: Sum numeric fields (e.g., ?with_sum=entries.hours)
+- with_avg: Average numeric fields (e.g., ?with_avg=entries.hours)
+- with_min/with_max: Min/max values
+- with_trashed: Include soft-deleted records (?with_trashed=true)
+- only_trashed: Only soft-deleted records (?only_trashed=true)
+
+**CRITICAL: Two Different Includes Formats**
+- GET requests: Use query parameter ?include=rel1,rel2,rel3 (comma-separated string)
+- POST search requests: Use body "includes": [{"relation": "rel1"}, {"relation": "rel2"}] (array of objects)
+
+**Batch Operations:**
+- POST /api/v2/{resource}/batch: Create multiple records
+- PATCH /api/v2/{resource}/batch: Update multiple records  
+- DELETE /api/v2/{resource}/batch: Delete multiple records
+- Body format: {"resources": [array_for_create_or_delete] or {id: data} for updates}
+
+**Restore Operations:**
+- POST /api/v2/{resource}/{id}/restore: Restore soft-deleted record
+- POST /api/v2/{resource}/batch/restore: Restore multiple records
+
 **IMPORTANT: To make an API call, you MUST output the exact format:**
 \`\`\`
-GET /api/endpoint
+METHOD /api/endpoint
+Body: {json_data}
 \`\`\`
-or without backticks:
-GET /api/endpoint
 
 Examples of CORRECT formats:
-- \`\`\`GET /api/users\`\`\`
-- \`\`\`GET /api/v2/jobs\`\`\`
-- GET /api/crews
-- \`\`\`POST /api/v2/customers\`\`\`
+- \`\`\`GET /api/v2/users?include=crews&with_count=entries\`\`\`
+- \`\`\`POST /api/v2/users/search
+Body: {"filters": [{"field": "name", "operator": "like", "value": "John"}], "sort": [{"field": "created_at", "direction": "desc"}], "includes": [{"relation": "crews"}, {"relation": "entries"}]}\`\`\`
+- \`\`\`POST /api/v2/users
+Body: {"name": "John Doe", "email": "john@example.com"}\`\`\`
+- \`\`\`PATCH /api/v2/users/batch  
+Body: {"resources": {"1": {"name": "New Name"}, "2": {"email": "new@email.com"}}}\`\`\`
 
 You may use each turn to either:
 1. Make an API call (by outputting the call in the exact format above)
 2. Think and reason about information you already have
 
 Before making an API call, check if you already have the needed information in the chat history. If you do, use it directly. Only make an API call if you need new or updated data.
+
+When users ask for complex data analysis, use the search endpoints with appropriate filters, sorting, and aggregations to get exactly what they need.
 
 After each turn, wait for the user or system to provide new information before continuing.
 
@@ -37,28 +72,48 @@ export function extractApiPlan(text: string): ApiCallPlan | null {
   const codeBlocks = text.match(/```[\s\S]*?```/g)
   if (codeBlocks) {
     for (const block of codeBlocks) {
-      const lines = block
-        .replace(/```/g, "")
+      const content = block.replace(/```/g, "").trim()
+      const lines = content
         .split("\n")
         .map((l) => l.trim())
         .filter(Boolean)
-      for (const line of lines) {
-        const match = line.match(/^(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
+
+      if (lines.length > 0) {
+        const firstLine = lines[0]
+        const match = firstLine.match(/^(GET|POST|PUT|DELETE|PATCH)\s+(\/\S+)/i)
         if (match) {
           const method = match[1].toUpperCase() as ApiCallPlan["method"]
           let endpoint = match[2].replace(/[`\s]+$/g, "")
           let params: Record<string, any> | undefined
+          let body: Record<string, any> | undefined
+
+          // Handle query parameters for GET requests
           if (endpoint.includes("?")) {
             const [path, query] = endpoint.split("?")
             endpoint = path
             params = Object.fromEntries(new URLSearchParams(query))
           }
-          return { endpoint, method, params }
+
+          // Handle request body (look for "Body:" line)
+          const bodyLineIndex = lines.findIndex((line) => line.toLowerCase().startsWith("body:"))
+          if (bodyLineIndex !== -1) {
+            const bodyContent = lines.slice(bodyLineIndex).join("\n")
+            const bodyJson = bodyContent.replace(/^body:\s*/i, "").trim()
+            try {
+              body = JSON.parse(bodyJson)
+            } catch (e) {
+              console.warn("Failed to parse request body:", bodyJson)
+            }
+          }
+
+          return { endpoint, method, params, body }
         }
       }
     }
   }
-  const match = text.match(/(GET|POST|PUT|DELETE)\s+(\/\S+)/i)
+
+  // Fallback to simple regex matching (without body support)
+  const match = text.match(/(GET|POST|PUT|DELETE|PATCH)\s+(\/\S+)/i)
   if (match) {
     const method = match[1].toUpperCase() as ApiCallPlan["method"]
     let endpoint = match[2].replace(/[`\s]+$/g, "")

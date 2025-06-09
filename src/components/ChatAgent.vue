@@ -2,7 +2,7 @@
 import { useChatAgent } from "./chat-agent"
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
-const { messages, input, isLoading, speechMode, handleSubmit, handleMic } = useChatAgent(OPENAI_API_KEY)
+const { messages, input, isLoading, handleSubmit, handleMic } = useChatAgent(OPENAI_API_KEY)
 </script>
 
 <template>

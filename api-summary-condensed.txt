@@ -1,31 +1,41 @@
-# Condensed API Endpoint Summary (updated 2025-06-09T01:31:30.000Z)
+# Enhanced API Endpoint Summary (updated 2025-06-08)
 
-Unless otherwise specified, every resource listed below supports: POST, GET, PATCH, DELETE.
+## ADVANCED FEATURES AVAILABLE:
 
-Resources (prefer using /api/v2/ or /api/ without version):
-- /api/v2/users
-- /api/v2/crews  
-- /api/v2/equipment
-- /api/v2/default-tasks
-- /api/v2/jobs
-- /api/v2/tasks
-- /api/v2/entries
-- /api/v2/entry-details
-- /api/v2/clock-entries
-- /api/v2/events
-- /api/v2/notes
-- /api/v2/companies
-- /api/v2/customers
-- /api/v2/customer-companies
-- /api/v2/audits
-- /api/v2/settings
-- /api/v2/default-notes
-- /api/v2/jotform-forms
-- /api/v2/jotform-questions
-- /api/v2/used-job-colors
-- /api/v2/labor-forecast-types
-- /api/v2/uploaded-files
+**Search & Filtering:** Use POST /api/v2/{resource}/search with filters, sorting, search, includes, aggregates
+**Query Parameters:** include (relationships), with_count, with_sum, with_avg, with_min, with_max, with_trashed, only_trashed
+**Batch Operations:** POST/PATCH/DELETE /api/v2/{resource}/batch for bulk operations
+**Restore Operations:** POST /api/v2/{resource}/{id}/restore and /api/v2/{resource}/batch/restore
 
-Exceptions and special endpoints:
+## Standard CRUD Operations
+Unless otherwise specified, every resource supports: GET, POST, PATCH, DELETE
 
-For full details, see the original api-summary.txt.
+## Resources (use /api/v2/ prefix):
+- **users** - System users with crews, entries relationships
+- **crews** - Work crews with user assignments  
+- **equipment** - Equipment/vehicles with assignments
+- **default-tasks** - Template tasks (supports restore)
+- **jobs** - Work jobs with tasks, customer, entries relationships
+- **tasks** - Job tasks with entries, job relationships
+- **entries** - Time entries with user, job, task relationships (supports restore)
+- **entry-details** - Entry detail records (supports restore)
+- **clock-entries** - Clock in/out records (supports restore)
+- **events** - Calendar/schedule events (supports restore)
+- **notes** - Notes and comments
+- **companies** - Company records
+- **customers** - Customer records (supports restore)
+
+## Special Endpoints:
+- **Job-Task Relations:** /api/v2/jobs/{job}/tasks/* for managing task associations
+- **Search:** POST /api/v2/{resource}/search for advanced filtering
+- **Batch:** POST/PATCH/DELETE /api/v2/{resource}/batch for bulk operations
+- **Restore:** POST /api/v2/{resource}/{id}/restore for undeleting
+
+## Query Examples:
+- GET /api/v2/users?include=crews,entries&with_count=entries&with_sum=entries.hours
+- POST /api/v2/jobs/search with body: {"filters": [{"field": "status", "operator": "=", "value": "active"}], "includes": [{"relation": "customer"}, {"relation": "tasks"}]}
+- PATCH /api/v2/users/batch with body: {"resources": {"1": {"name": "New Name"}}}
+
+**Filter Operators:** =, !=, >, <, >=, <=, like, in, not_in, between, is_null, is_not_null
+**Sort:** [{"field": "created_at", "direction": "desc"}]
+**Aggregates:** [{"field": "hours", "function": "sum|avg|count|min|max"}]
