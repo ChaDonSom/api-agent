@@ -38,7 +38,7 @@ Use `POST /api/v2/{resource}/search` for complex queries:
     { "field": "created_at", "direction": "desc" },
     { "field": "name", "direction": "asc" }
   ],
-  "includes": [{"relation": "user"}, {"relation": "job"}, {"relation": "tasks"}],
+  "includes": [{ "relation": "user" }, { "relation": "job" }, { "relation": "tasks" }],
   "aggregates": [
     { "field": "hours", "function": "sum" },
     { "field": "entries", "function": "count" }

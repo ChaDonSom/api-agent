@@ -5,6 +5,7 @@
 The API supports two different ways to include related data, and it's crucial to use the correct format for each case:
 
 ### 1. Query Parameter `include` (for GET requests)
+
 **Format**: Comma-separated string
 **Usage**: `?include=relationship1,relationship2,relationship3`
 
@@ -14,6 +15,7 @@ GET /api/v2/jobs?include=customer,tasks&with_count=entries
 ```
 
 ### 2. Request Body `includes` (for POST search requests)
+
 **Format**: Array of objects with `relation` property
 **Usage**: `"includes": [{"relation": "relationship1"}, {"relation": "relationship2"}]`
 
@@ -22,7 +24,7 @@ POST /api/v2/users/search
 Body: {
   "filters": [...],
   "includes": [
-    {"relation": "crews"}, 
+    {"relation": "crews"},
     {"relation": "entries"},
     {"relation": "tasks"}
   ]
@@ -30,21 +32,20 @@ Body: {
 ```
 
 ## ❌ Common Mistake
+
 **WRONG** - Using simple array of strings in search body:
+
 ```json
 {
-  "includes": ["crews", "entries", "tasks"]  // ❌ Incorrect
+  "includes": ["crews", "entries", "tasks"] // ❌ Incorrect
 }
 ```
 
 **CORRECT** - Using array of relation objects:
+
 ```json
 {
-  "includes": [
-    {"relation": "crews"}, 
-    {"relation": "entries"}, 
-    {"relation": "tasks"}
-  ]  // ✅ Correct
+  "includes": [{ "relation": "crews" }, { "relation": "entries" }, { "relation": "tasks" }] // ✅ Correct
 }
 ```
 
@@ -56,6 +57,7 @@ Body: {
 ## Examples by Endpoint Type
 
 ### GET Requests (Query Parameter)
+
 ```
 GET /api/v2/users?include=crews,entries&with_count=tasks
 GET /api/v2/jobs?include=customer,tasks,entries&with_sum=entries.hours
@@ -63,6 +65,7 @@ GET /api/v2/equipment?include=assignments,maintenance_records
 ```
 
 ### POST Search Requests (Request Body)
+
 ```json
 POST /api/v2/users/search
 Body: {
@@ -71,7 +74,7 @@ Body: {
   "sort": [{"field": "name", "direction": "asc"}]
 }
 
-POST /api/v2/jobs/search  
+POST /api/v2/jobs/search
 Body: {
   "filters": [{"field": "status", "operator": "=", "value": "active"}],
   "includes": [{"relation": "customer"}, {"relation": "tasks"}, {"relation": "entries"}],
