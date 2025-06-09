@@ -1,0 +1,1135 @@
+# API Endpoint Summary (generated 2025-06-09T01:04:31.184Z)
+
+
+- POST /api/v1/users: Create user
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: User
+
+- GET /api/v1/users: Get a list of users
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: User
+
+- POST /api/v1/users/search: Search for users
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: User
+
+- GET /api/v1/users/{user}: Get user
+    Params: user (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: User
+
+- PATCH /api/v1/users/{user}: Update user
+    Params: user (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: User
+
+- DELETE /api/v1/users/{user}: Delete user
+    Params: user (path, required): integer; force (query): boolean; include (query): string; undefined (undefined)
+    Tags: User
+
+- POST /api/v1/users/{user}/restore: Restore user
+    Params: user (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: User
+
+- POST /api/v1/users/batch: Create a batch of users
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: User
+
+- PATCH /api/v1/users/batch: Update a batch of users
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: User
+
+- DELETE /api/v1/users/batch: Delete a batch of users
+    Params: force (query): boolean; include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: User
+
+- POST /api/v1/users/batch/restore: Restore a batch of users
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: User
+
+- POST /api/v1/crews: Create crew
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Crew
+
+- GET /api/v1/crews: Get a list of crews
+    Params: include (query): string; undefined (undefined)
+    Tags: Crew
+
+- POST /api/v1/crews/search: Search for crews
+    Params: include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Crew
+
+- GET /api/v1/crews/{crew}: Get crew
+    Params: crew (path, required): integer; include (query): string; undefined (undefined)
+    Tags: Crew
+
+- PATCH /api/v1/crews/{crew}: Update crew
+    Params: crew (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Crew
+
+- DELETE /api/v1/crews/{crew}: Delete crew
+    Params: crew (path, required): integer; include (query): string; undefined (undefined)
+    Tags: Crew
+
+- POST /api/v1/crews/batch: Create a batch of crews
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Crew
+
+- PATCH /api/v1/crews/batch: Update a batch of crews
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Crew
+
+- DELETE /api/v1/crews/batch: Delete a batch of crews
+    Params: include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Crew
+
+- POST /api/v1/equipment: Create equipment
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Equipment
+
+- GET /api/v1/equipment: Get a list of equipment
+    Params: include (query): string; undefined (undefined)
+    Tags: Equipment
+
+- POST /api/v1/equipment/search: Search for equipment
+    Params: include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Equipment
+
+- GET /api/v1/equipment/{equipment}: Get equipment
+    Params: equipment (path, required): integer; include (query): string; undefined (undefined)
+    Tags: Equipment
+
+- PATCH /api/v1/equipment/{equipment}: Update equipment
+    Params: equipment (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Equipment
+
+- DELETE /api/v1/equipment/{equipment}: Delete equipment
+    Params: equipment (path, required): integer; include (query): string; undefined (undefined)
+    Tags: Equipment
+
+- POST /api/v1/equipment/batch: Create a batch of equipment
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Equipment
+
+- PATCH /api/v1/equipment/batch: Update a batch of equipment
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Equipment
+
+- DELETE /api/v1/equipment/batch: Delete a batch of equipment
+    Params: include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Equipment
+
+- POST /api/v1/default-tasks: Create default task
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Default Task
+
+- GET /api/v1/default-tasks: Get a list of default tasks
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Default Task
+
+- POST /api/v1/default-tasks/search: Search for default tasks
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Default Task
+
+- GET /api/v1/default-tasks/{default_task}: Get default task
+    Params: default_task (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Default Task
+
+- PATCH /api/v1/default-tasks/{default_task}: Update default task
+    Params: default_task (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Default Task
+
+- DELETE /api/v1/default-tasks/{default_task}: Delete default task
+    Params: default_task (path, required): integer; force (query): boolean; include (query): string; undefined (undefined)
+    Tags: Default Task
+
+- POST /api/v1/default-tasks/{default_task}/restore: Restore default task
+    Params: default_task (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Default Task
+
+- POST /api/v1/default-tasks/batch: Create a batch of default tasks
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Default Task
+
+- PATCH /api/v1/default-tasks/batch: Update a batch of default tasks
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Default Task
+
+- DELETE /api/v1/default-tasks/batch: Delete a batch of default tasks
+    Params: force (query): boolean; include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Default Task
+
+- POST /api/v1/default-tasks/batch/restore: Restore a batch of default tasks
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Default Task
+
+- POST /api/v1/jobs: Create job
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Job
+
+- GET /api/v1/jobs: Get a list of jobs
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Job
+
+- POST /api/v1/jobs/search: Search for jobs
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Body fields: scopes (array), filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Job
+
+- GET /api/v1/jobs/{job}: Get job
+    Params: job (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Job
+
+- PATCH /api/v1/jobs/{job}: Update job
+    Params: job (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Job
+
+- DELETE /api/v1/jobs/{job}: Delete job
+    Params: job (path, required): integer; force (query): boolean; include (query): string; undefined (undefined)
+    Tags: Job
+
+- POST /api/v1/jobs/batch: Create a batch of jobs
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Job
+
+- PATCH /api/v1/jobs/batch: Update a batch of jobs
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Job
+
+- DELETE /api/v1/jobs/batch: Delete a batch of jobs
+    Params: force (query): boolean; include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Job
+
+- POST /api/v1/tasks: Create task
+    Params: include (query): string
+    Tags: Task
+
+- GET /api/v1/tasks: Get a list of tasks
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Task
+
+- POST /api/v1/tasks/search: Search for tasks
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: scopes (array), filters (array), search (object), sort (array), includes (array)
+    Tags: Task
+
+- GET /api/v1/tasks/{task}: Get task
+    Params: task (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Task
+
+- PATCH /api/v1/tasks/{task}: Update task
+    Params: task (path, required): integer; include (query): string
+    Tags: Task
+
+- DELETE /api/v1/tasks/{task}: Delete task
+    Params: task (path, required): integer; force (query): boolean; include (query): string
+    Tags: Task
+
+- POST /api/v1/tasks/batch: Create a batch of tasks
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Task
+
+- PATCH /api/v1/tasks/batch: Update a batch of tasks
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Task
+
+- DELETE /api/v1/tasks/batch: Delete a batch of tasks
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Task
+
+- POST /api/v1/jobs/{job}/tasks: Create task
+    Params: job (path, required): integer
+    Tags: Job Task
+
+- GET /api/v1/jobs/{job}/tasks: Get a list of tasks
+    Params: job (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean
+    Tags: Job Task
+
+- POST /api/v1/jobs/{job}/tasks/search: Search for tasks
+    Params: job (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean
+    Body fields: scopes (array)
+    Tags: Job Task
+
+- GET /api/v1/jobs/{job}/tasks/{task}: Get task
+    Params: job (path, required): integer; task (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean
+    Tags: Job Task
+
+- PATCH /api/v1/jobs/{job}/tasks/{task}: Update task
+    Params: job (path, required): integer; task (path, required): integer
+    Tags: Job Task
+
+- DELETE /api/v1/jobs/{job}/tasks/{task}: Delete task
+    Params: job (path, required): integer; task (path, required): integer; force (query): boolean
+    Tags: Job Task
+
+- POST /api/v1/jobs/{job}/tasks/batch: Create a batch of tasks
+    Params: job (path, required): integer
+    Body fields: resources (array)
+    Tags: Job Task
+
+- PATCH /api/v1/jobs/{job}/tasks/batch: Update a batch of tasks
+    Params: job (path, required): integer
+    Body fields: resources (object)
+    Tags: Job Task
+
+- DELETE /api/v1/jobs/{job}/tasks/batch: Delete a batch of tasks
+    Params: job (path, required): integer; force (query): boolean
+    Body fields: resources (array)
+    Tags: Job Task
+
+- POST /api/v1/jobs/{job}/tasks/associate: Associate task with job
+    Params: job (path, required): integer
+    Tags: Job Task
+
+- DELETE /api/v1/jobs/{job}/tasks/{task}/dissociate: Dissociate task from job
+    Params: job (path, required): integer; task (path, required): integer
+    Tags: Job Task
+
+- POST /api/v1/entries: Create entry
+    Params: include (query): string
+    Tags: Entry
+
+- GET /api/v1/entries: Get a list of entries
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Entry
+
+- POST /api/v1/entries/search: Search for entries
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: scopes (array), filters (array), search (object), sort (array), includes (array)
+    Tags: Entry
+
+- GET /api/v1/entries/{entry}: Get entry
+    Params: entry (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Entry
+
+- PATCH /api/v1/entries/{entry}: Update entry
+    Params: entry (path, required): integer; include (query): string
+    Tags: Entry
+
+- DELETE /api/v1/entries/{entry}: Delete entry
+    Params: entry (path, required): integer; force (query): boolean; include (query): string
+    Tags: Entry
+
+- POST /api/v1/entries/{entry}/restore: Restore entry
+    Params: entry (path, required): integer; include (query): string
+    Tags: Entry
+
+- POST /api/v1/entries/batch: Create a batch of entries
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Entry
+
+- PATCH /api/v1/entries/batch: Update a batch of entries
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Entry
+
+- DELETE /api/v1/entries/batch: Delete a batch of entries
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Entry
+
+- POST /api/v1/entries/batch/restore: Restore a batch of entries
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Entry
+
+- POST /api/v1/entry-details: Create entry detail
+    Params: include (query): string
+    Tags: Entry Detail
+
+- GET /api/v1/entry-details: Get a list of entry details
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Entry Detail
+
+- POST /api/v1/entry-details/search: Search for entry details
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Entry Detail
+
+- GET /api/v1/entry-details/{entry_detail}: Get entry detail
+    Params: entry_detail (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Entry Detail
+
+- PATCH /api/v1/entry-details/{entry_detail}: Update entry detail
+    Params: entry_detail (path, required): integer; include (query): string
+    Tags: Entry Detail
+
+- DELETE /api/v1/entry-details/{entry_detail}: Delete entry detail
+    Params: entry_detail (path, required): integer; force (query): boolean; include (query): string
+    Tags: Entry Detail
+
+- POST /api/v1/entry-details/{entry_detail}/restore: Restore entry detail
+    Params: entry_detail (path, required): integer; include (query): string
+    Tags: Entry Detail
+
+- POST /api/v1/entry-details/batch: Create a batch of entry details
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Entry Detail
+
+- PATCH /api/v1/entry-details/batch: Update a batch of entry details
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Entry Detail
+
+- DELETE /api/v1/entry-details/batch: Delete a batch of entry details
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Entry Detail
+
+- POST /api/v1/entry-details/batch/restore: Restore a batch of entry details
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Entry Detail
+
+- POST /api/v1/clock-entries: Create clock entry
+    Params: include (query): string
+    Tags: Clock Entry
+
+- GET /api/v1/clock-entries: Get a list of clock entries
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Clock Entry
+
+- POST /api/v1/clock-entries/search: Search for clock entries
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Clock Entry
+
+- GET /api/v1/clock-entries/{clock_entry}: Get clock entry
+    Params: clock_entry (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Clock Entry
+
+- PATCH /api/v1/clock-entries/{clock_entry}: Update clock entry
+    Params: clock_entry (path, required): integer; include (query): string
+    Tags: Clock Entry
+
+- DELETE /api/v1/clock-entries/{clock_entry}: Delete clock entry
+    Params: clock_entry (path, required): integer; force (query): boolean; include (query): string
+    Tags: Clock Entry
+
+- POST /api/v1/clock-entries/{clock_entry}/restore: Restore clock entry
+    Params: clock_entry (path, required): integer; include (query): string
+    Tags: Clock Entry
+
+- POST /api/v1/clock-entries/batch: Create a batch of clock entries
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Clock Entry
+
+- PATCH /api/v1/clock-entries/batch: Update a batch of clock entries
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Clock Entry
+
+- DELETE /api/v1/clock-entries/batch: Delete a batch of clock entries
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Clock Entry
+
+- POST /api/v1/clock-entries/batch/restore: Restore a batch of clock entries
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Clock Entry
+
+- POST /api/v1/events: Create event
+    Params: include (query): string
+    Tags: Event
+
+- GET /api/v1/events: Get a list of events
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Event
+
+- POST /api/v1/events/search: Search for events
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: scopes (array), filters (array), search (object), sort (array), includes (array)
+    Tags: Event
+
+- GET /api/v1/events/{event}: Get event
+    Params: event (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Event
+
+- PATCH /api/v1/events/{event}: Update event
+    Params: event (path, required): integer; include (query): string
+    Tags: Event
+
+- DELETE /api/v1/events/{event}: Delete event
+    Params: event (path, required): integer; force (query): boolean; include (query): string
+    Tags: Event
+
+- POST /api/v1/events/{event}/restore: Restore event
+    Params: event (path, required): integer; include (query): string
+    Tags: Event
+
+- POST /api/v1/events/batch: Create a batch of events
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Event
+
+- PATCH /api/v1/events/batch: Update a batch of events
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Event
+
+- DELETE /api/v1/events/batch: Delete a batch of events
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Event
+
+- POST /api/v1/events/batch/restore: Restore a batch of events
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Event
+
+- POST /api/v1/notes: Create note
+    Params: include (query): string
+    Tags: Note
+
+- GET /api/v1/notes: Get a list of notes
+    Params: include (query): string
+    Tags: Note
+
+- POST /api/v1/notes/search: Search for notes
+    Params: include (query): string
+    Body fields: scopes (array), filters (array), search (object), sort (array), includes (array)
+    Tags: Note
+
+- GET /api/v1/notes/{note}: Get note
+    Params: note (path, required): integer; include (query): string
+    Tags: Note
+
+- PATCH /api/v1/notes/{note}: Update note
+    Params: note (path, required): integer; include (query): string
+    Tags: Note
+
+- DELETE /api/v1/notes/{note}: Delete note
+    Params: note (path, required): integer; include (query): string
+    Tags: Note
+
+- POST /api/v1/notes/batch: Create a batch of notes
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Note
+
+- PATCH /api/v1/notes/batch: Update a batch of notes
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Note
+
+- DELETE /api/v1/notes/batch: Delete a batch of notes
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Note
+
+- POST /api/v1/companies: Create company
+    Params: include (query): string
+    Tags: Company
+
+- GET /api/v1/companies: Get a list of companies
+    Params: include (query): string
+    Tags: Company
+
+- POST /api/v1/companies/search: Search for companies
+    Params: include (query): string
+    Body fields: scopes (array), filters (array), search (object), includes (array)
+    Tags: Company
+
+- GET /api/v1/companies/{company}: Get company
+    Params: company (path, required): integer; include (query): string
+    Tags: Company
+
+- PATCH /api/v1/companies/{company}: Update company
+    Params: company (path, required): integer; include (query): string
+    Tags: Company
+
+- DELETE /api/v1/companies/{company}: Delete company
+    Params: company (path, required): integer; include (query): string
+    Tags: Company
+
+- POST /api/v1/companies/batch: Create a batch of companies
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Company
+
+- PATCH /api/v1/companies/batch: Update a batch of companies
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Company
+
+- DELETE /api/v1/companies/batch: Delete a batch of companies
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Company
+
+- POST /api/v1/customers: Create customer
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer
+
+- GET /api/v1/customers: Get a list of customers
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer
+
+- POST /api/v1/customers/search: Search for customers
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Customer
+
+- GET /api/v1/customers/{customer}: Get customer
+    Params: customer (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer
+
+- PATCH /api/v1/customers/{customer}: Update customer
+    Params: customer (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer
+
+- DELETE /api/v1/customers/{customer}: Delete customer
+    Params: customer (path, required): integer; force (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer
+
+- POST /api/v1/customers/{customer}/restore: Restore customer
+    Params: customer (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer
+
+- POST /api/v1/customers/batch: Create a batch of customers
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Customer
+
+- PATCH /api/v1/customers/batch: Update a batch of customers
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Customer
+
+- DELETE /api/v1/customers/batch: Delete a batch of customers
+    Params: force (query): boolean; include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Customer
+
+- POST /api/v1/customers/batch/restore: Restore a batch of customers
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Customer
+
+- POST /api/v1/customer-companies: Create customer company
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer Company
+
+- GET /api/v1/customer-companies: Get a list of customer companies
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer Company
+
+- POST /api/v1/customer-companies/search: Search for customer companies
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Body fields: filters (array), search (object), sort (array), includes (array), aggregates (array)
+    Tags: Customer Company
+
+- GET /api/v1/customer-companies/{customer_company}: Get customer company
+    Params: customer_company (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer Company
+
+- PATCH /api/v1/customer-companies/{customer_company}: Update customer company
+    Params: customer_company (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer Company
+
+- DELETE /api/v1/customer-companies/{customer_company}: Delete customer company
+    Params: customer_company (path, required): integer; force (query): boolean; include (query): string; undefined (undefined)
+    Tags: Customer Company
+
+- POST /api/v1/customer-companies/{customer_company}/restore: Restore customer company
+    Params: customer_company (path, required): integer; include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Tags: Customer Company
+
+- POST /api/v1/customer-companies/batch: Create a batch of customer companies
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Customer Company
+
+- PATCH /api/v1/customer-companies/batch: Update a batch of customer companies
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (object)
+    Tags: Customer Company
+
+- DELETE /api/v1/customer-companies/batch: Delete a batch of customer companies
+    Params: force (query): boolean; include (query): string; undefined (undefined)
+    Body fields: resources (array)
+    Tags: Customer Company
+
+- POST /api/v1/customer-companies/batch/restore: Restore a batch of customer companies
+    Params: include (query): string; with_count (query): string; with_exists (query): string; with_avg (query): string; with_sum (query): string; with_min (query): string; with_max (query): string
+    Body fields: resources (array)
+    Tags: Customer Company
+
+- POST /api/v1/audits: Create audit
+    Params: include (query): string
+    Tags: Audit
+
+- GET /api/v1/audits: Get a list of audits
+    Params: include (query): string
+    Tags: Audit
+
+- POST /api/v1/audits/search: Search for audits
+    Params: include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Audit
+
+- GET /api/v1/audits/{audit}: Get audit
+    Params: audit (path, required): integer; include (query): string
+    Tags: Audit
+
+- PATCH /api/v1/audits/{audit}: Update audit
+    Params: audit (path, required): integer; include (query): string
+    Tags: Audit
+
+- DELETE /api/v1/audits/{audit}: Delete audit
+    Params: audit (path, required): integer; include (query): string
+    Tags: Audit
+
+- POST /api/v1/audits/batch: Create a batch of audits
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Audit
+
+- PATCH /api/v1/audits/batch: Update a batch of audits
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Audit
+
+- DELETE /api/v1/audits/batch: Delete a batch of audits
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Audit
+
+- POST /api/v1/settings: Create setting
+    Tags: Setting
+
+- GET /api/v1/settings: Get a list of settings
+    Params: with_trashed (query): boolean; only_trashed (query): boolean
+    Tags: Setting
+
+- POST /api/v1/settings/search: Search for settings
+    Params: with_trashed (query): boolean; only_trashed (query): boolean
+    Body fields: scopes (array), filters (array)
+    Tags: Setting
+
+- GET /api/v1/settings/{setting}: Get setting
+    Params: setting (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean
+    Tags: Setting
+
+- PATCH /api/v1/settings/{setting}: Update setting
+    Params: setting (path, required): integer
+    Tags: Setting
+
+- DELETE /api/v1/settings/{setting}: Delete setting
+    Params: setting (path, required): integer; force (query): boolean
+    Tags: Setting
+
+- POST /api/v1/settings/{setting}/restore: Restore setting
+    Params: setting (path, required): integer
+    Tags: Setting
+
+- POST /api/v1/settings/batch: Create a batch of settings
+    Body fields: resources (array)
+    Tags: Setting
+
+- PATCH /api/v1/settings/batch: Update a batch of settings
+    Body fields: resources (object)
+    Tags: Setting
+
+- DELETE /api/v1/settings/batch: Delete a batch of settings
+    Params: force (query): boolean
+    Body fields: resources (array)
+    Tags: Setting
+
+- POST /api/v1/settings/batch/restore: Restore a batch of settings
+    Body fields: resources (array)
+    Tags: Setting
+
+- POST /api/v1/default-notes: Create default note
+    Params: include (query): string
+    Tags: Default Note
+
+- GET /api/v1/default-notes: Get a list of default notes
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Default Note
+
+- POST /api/v1/default-notes/search: Search for default notes
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Default Note
+
+- GET /api/v1/default-notes/{default_note}: Get default note
+    Params: default_note (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Default Note
+
+- PATCH /api/v1/default-notes/{default_note}: Update default note
+    Params: default_note (path, required): integer; include (query): string
+    Tags: Default Note
+
+- DELETE /api/v1/default-notes/{default_note}: Delete default note
+    Params: default_note (path, required): integer; force (query): boolean; include (query): string
+    Tags: Default Note
+
+- POST /api/v1/default-notes/{default_note}/restore: Restore default note
+    Params: default_note (path, required): integer; include (query): string
+    Tags: Default Note
+
+- POST /api/v1/default-notes/batch: Create a batch of default notes
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Default Note
+
+- PATCH /api/v1/default-notes/batch: Update a batch of default notes
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Default Note
+
+- DELETE /api/v1/default-notes/batch: Delete a batch of default notes
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note
+
+- POST /api/v1/default-notes/batch/restore: Restore a batch of default notes
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Default Note
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files: Create uploaded file
+    Params: default_note (path, required): integer; include (query): string
+    Tags: Default Note Uploaded File
+
+- GET /api/v1/default-notes/{default_note}/uploaded-files: Get a list of uploaded files
+    Params: default_note (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files/search: Search for uploaded files
+    Params: default_note (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: includes (array)
+    Tags: Default Note Uploaded File
+
+- GET /api/v1/default-notes/{default_note}/uploaded-files/{uploaded_file}: Get uploaded file
+    Params: default_note (path, required): integer; uploaded_file (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Default Note Uploaded File
+
+- PATCH /api/v1/default-notes/{default_note}/uploaded-files/{uploaded_file}: Update uploaded file
+    Params: default_note (path, required): integer; uploaded_file (path, required): integer; include (query): string
+    Tags: Default Note Uploaded File
+
+- DELETE /api/v1/default-notes/{default_note}/uploaded-files/{uploaded_file}: Delete uploaded file
+    Params: default_note (path, required): integer; uploaded_file (path, required): integer; force (query): boolean; include (query): string
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files/{uploaded_file}/restore: Restore uploaded file
+    Params: default_note (path, required): integer; uploaded_file (path, required): integer; include (query): string
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files/batch: Create a batch of uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- PATCH /api/v1/default-notes/{default_note}/uploaded-files/batch: Update a batch of uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (object)
+    Tags: Default Note Uploaded File
+
+- DELETE /api/v1/default-notes/{default_note}/uploaded-files/batch: Delete a batch of uploaded files
+    Params: default_note (path, required): integer; force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files/batch/restore: Restore a batch of uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/default-notes/{default_note}/uploaded-files/attach: Attach uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- DELETE /api/v1/default-notes/{default_note}/uploaded-files/detach: Detach uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- PATCH /api/v1/default-notes/{default_note}/uploaded-files/sync: Sync uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- PATCH /api/v1/default-notes/{default_note}/uploaded-files/toggle: Toggle uploaded files
+    Params: default_note (path, required): integer; include (query): string
+    Body fields: resources (array)
+    Tags: Default Note Uploaded File
+
+- PATCH /api/v1/default-notes/{default_note}/uploaded-files/{uploaded_file}/pivot: Update pivot
+    Params: default_note (path, required): integer; uploaded_file (path, required): integer; include (query): string
+    Body fields: pivot (object)
+    Tags: Default Note Uploaded File
+
+- POST /api/v1/jotform-forms: Create jotform form
+    Params: include (query): string
+    Tags: Jotform Form
+
+- GET /api/v1/jotform-forms: Get a list of jotform forms
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Jotform Form
+
+- POST /api/v1/jotform-forms/search: Search for jotform forms
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Jotform Form
+
+- GET /api/v1/jotform-forms/{jotform_form}: Get jotform form
+    Params: jotform_form (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Jotform Form
+
+- PATCH /api/v1/jotform-forms/{jotform_form}: Update jotform form
+    Params: jotform_form (path, required): integer; include (query): string
+    Tags: Jotform Form
+
+- DELETE /api/v1/jotform-forms/{jotform_form}: Delete jotform form
+    Params: jotform_form (path, required): integer; force (query): boolean; include (query): string
+    Tags: Jotform Form
+
+- POST /api/v1/jotform-forms/{jotform_form}/restore: Restore jotform form
+    Params: jotform_form (path, required): integer; include (query): string
+    Tags: Jotform Form
+
+- POST /api/v1/jotform-forms/batch: Create a batch of jotform forms
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Form
+
+- PATCH /api/v1/jotform-forms/batch: Update a batch of jotform forms
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Jotform Form
+
+- DELETE /api/v1/jotform-forms/batch: Delete a batch of jotform forms
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Form
+
+- POST /api/v1/jotform-forms/batch/restore: Restore a batch of jotform forms
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Form
+
+- POST /api/v1/jotform-questions: Create jotform question
+    Params: include (query): string
+    Tags: Jotform Question
+
+- GET /api/v1/jotform-questions: Get a list of jotform questions
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Jotform Question
+
+- POST /api/v1/jotform-questions/search: Search for jotform questions
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Jotform Question
+
+- GET /api/v1/jotform-questions/{jotform_question}: Get jotform question
+    Params: jotform_question (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Jotform Question
+
+- PATCH /api/v1/jotform-questions/{jotform_question}: Update jotform question
+    Params: jotform_question (path, required): integer; include (query): string
+    Tags: Jotform Question
+
+- DELETE /api/v1/jotform-questions/{jotform_question}: Delete jotform question
+    Params: jotform_question (path, required): integer; force (query): boolean; include (query): string
+    Tags: Jotform Question
+
+- POST /api/v1/jotform-questions/{jotform_question}/restore: Restore jotform question
+    Params: jotform_question (path, required): integer; include (query): string
+    Tags: Jotform Question
+
+- POST /api/v1/jotform-questions/batch: Create a batch of jotform questions
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Question
+
+- PATCH /api/v1/jotform-questions/batch: Update a batch of jotform questions
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Jotform Question
+
+- DELETE /api/v1/jotform-questions/batch: Delete a batch of jotform questions
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Question
+
+- POST /api/v1/jotform-questions/batch/restore: Restore a batch of jotform questions
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Jotform Question
+
+- POST /api/v1/used-job-colors: Create used job color
+    Params: include (query): string
+    Tags: Used Job Color
+
+- GET /api/v1/used-job-colors: Get a list of used job colors
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Used Job Color
+
+- POST /api/v1/used-job-colors/search: Search for used job colors
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Used Job Color
+
+- GET /api/v1/used-job-colors/{used_job_color}: Get used job color
+    Params: used_job_color (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Used Job Color
+
+- PATCH /api/v1/used-job-colors/{used_job_color}: Update used job color
+    Params: used_job_color (path, required): integer; include (query): string
+    Tags: Used Job Color
+
+- DELETE /api/v1/used-job-colors/{used_job_color}: Delete used job color
+    Params: used_job_color (path, required): integer; force (query): boolean; include (query): string
+    Tags: Used Job Color
+
+- POST /api/v1/used-job-colors/{used_job_color}/restore: Restore used job color
+    Params: used_job_color (path, required): integer; include (query): string
+    Tags: Used Job Color
+
+- POST /api/v1/used-job-colors/batch: Create a batch of used job colors
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Used Job Color
+
+- PATCH /api/v1/used-job-colors/batch: Update a batch of used job colors
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Used Job Color
+
+- DELETE /api/v1/used-job-colors/batch: Delete a batch of used job colors
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Used Job Color
+
+- POST /api/v1/used-job-colors/batch/restore: Restore a batch of used job colors
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Used Job Color
+
+- POST /api/v1/labor-forecast-types: Create labor forecast type
+    Params: include (query): string
+    Tags: Labor Forecast Type
+
+- GET /api/v1/labor-forecast-types: Get a list of labor forecast types
+    Params: include (query): string
+    Tags: Labor Forecast Type
+
+- POST /api/v1/labor-forecast-types/search: Search for labor forecast types
+    Params: include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Labor Forecast Type
+
+- GET /api/v1/labor-forecast-types/{labor_forecast_type}: Get labor forecast type
+    Params: labor_forecast_type (path, required): integer; include (query): string
+    Tags: Labor Forecast Type
+
+- PATCH /api/v1/labor-forecast-types/{labor_forecast_type}: Update labor forecast type
+    Params: labor_forecast_type (path, required): integer; include (query): string
+    Tags: Labor Forecast Type
+
+- DELETE /api/v1/labor-forecast-types/{labor_forecast_type}: Delete labor forecast type
+    Params: labor_forecast_type (path, required): integer; include (query): string
+    Tags: Labor Forecast Type
+
+- POST /api/v1/labor-forecast-types/{labor_forecast_type}/restore: Restore labor forecast type
+    Params: labor_forecast_type (path, required): integer; include (query): string
+    Tags: Labor Forecast Type
+
+- POST /api/v1/labor-forecast-types/batch: Create a batch of labor forecast types
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Labor Forecast Type
+
+- PATCH /api/v1/labor-forecast-types/batch: Update a batch of labor forecast types
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Labor Forecast Type
+
+- DELETE /api/v1/labor-forecast-types/batch: Delete a batch of labor forecast types
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Labor Forecast Type
+
+- POST /api/v1/labor-forecast-types/batch/restore: Restore a batch of labor forecast types
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Labor Forecast Type
+
+- POST /api/v1/uploaded-files: Create uploaded file
+    Params: include (query): string
+    Tags: Uploaded File
+
+- GET /api/v1/uploaded-files: Get a list of uploaded files
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Uploaded File
+
+- POST /api/v1/uploaded-files/search: Search for uploaded files
+    Params: with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Body fields: filters (array), search (object), sort (array), includes (array)
+    Tags: Uploaded File
+
+- GET /api/v1/uploaded-files/{uploaded_file}: Get uploaded file
+    Params: uploaded_file (path, required): integer; with_trashed (query): boolean; only_trashed (query): boolean; include (query): string
+    Tags: Uploaded File
+
+- PATCH /api/v1/uploaded-files/{uploaded_file}: Update uploaded file
+    Params: uploaded_file (path, required): integer; include (query): string
+    Tags: Uploaded File
+
+- DELETE /api/v1/uploaded-files/{uploaded_file}: Delete uploaded file
+    Params: uploaded_file (path, required): integer; force (query): boolean; include (query): string
+    Tags: Uploaded File
+
+- POST /api/v1/uploaded-files/{uploaded_file}/restore: Restore uploaded file
+    Params: uploaded_file (path, required): integer; include (query): string
+    Tags: Uploaded File
+
+- POST /api/v1/uploaded-files/batch: Create a batch of uploaded files
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Uploaded File
+
+- PATCH /api/v1/uploaded-files/batch: Update a batch of uploaded files
+    Params: include (query): string
+    Body fields: resources (object)
+    Tags: Uploaded File
+
+- DELETE /api/v1/uploaded-files/batch: Delete a batch of uploaded files
+    Params: force (query): boolean; include (query): string
+    Body fields: resources (array)
+    Tags: Uploaded File
+
+- POST /api/v1/uploaded-files/batch/restore: Restore a batch of uploaded files
+    Params: include (query): string
+    Body fields: resources (array)
+    Tags: Uploaded File

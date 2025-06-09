@@ -10,6 +10,7 @@
     "mock:api": "json-server --watch server/db.json --port 8000"
   },
   "dependencies": {
+    "node-fetch": "^3.3.2",
     "vue": "^3.5.13"
   },
   "devDependencies": {
@@ -17,6 +18,8 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.7.0",
     "json-server": "^1.0.0-beta.3",
+    "openapi-typescript": "^7.8.0",
+    "orval": "^7.9.0",
     "tailwindcss": "^4.1.8",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",

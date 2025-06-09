@@ -1,14 +1,36 @@
 import { ref } from "vue"
-import { apiTools } from "../agent-tools"
 import { executeApiPlan } from "../agent-api"
 import type { ApiCallPlan } from "../agent-api"
+import apiSummary from "../../api-summary-condensed.txt?raw"
 
 export function getSystemPrompt() {
-  return `You are an AI agent that can plan and execute API calls to a mock backend.\n\nAvailable tools (API endpoints):\n${apiTools
-    .map((tool) => `- ${tool.name}: ${tool.description} (\`${tool.method} ${tool.endpoint}\`)`)
-    .join(
-      "\n"
-    )}\n\nYou may use each turn to either:\n- Make an API call (by outputting the call in a code block, e.g. \`\`\`GET /users\`\`\`), or\n- Think and reason about the information you already have (by outputting your reasoning in plain text).\n\nBefore making an API call, always check if you already have the needed information in the chat history. If you do, use it directly and explain your reasoning. Only make an API call if you do not already have the answer or if the data is likely to have changed.\n\nAfter each turn, wait for the user or system to provide new information or results before continuing.\n\nIf you have enough information to answer the user's question, do so clearly and concisely.`
+  return `You are an AI agent that can plan and execute API calls to a real backend.
+
+Available tools (API endpoints):
+${apiSummary}
+
+**IMPORTANT: To make an API call, you MUST output the exact format:**
+\`\`\`
+GET /api/endpoint
+\`\`\`
+or without backticks:
+GET /api/endpoint
+
+Examples of CORRECT formats:
+- \`\`\`GET /api/users\`\`\`
+- \`\`\`GET /api/v2/jobs\`\`\`
+- GET /api/crews
+- \`\`\`POST /api/v2/customers\`\`\`
+
+You may use each turn to either:
+1. Make an API call (by outputting the call in the exact format above)
+2. Think and reason about information you already have
+
+Before making an API call, check if you already have the needed information in the chat history. If you do, use it directly. Only make an API call if you need new or updated data.
+
+After each turn, wait for the user or system to provide new information before continuing.
+
+If you have enough information to answer the user's question, do so clearly and concisely.`
 }
 
 export function extractApiPlan(text: string): ApiCallPlan | null {

@@ -1,0 +1,31 @@
+# Condensed API Endpoint Summary (updated 2025-06-09T01:31:30.000Z)
+
+Unless otherwise specified, every resource listed below supports: POST, GET, PATCH, DELETE.
+
+Resources (prefer using /api/v2/ or /api/ without version):
+- /api/v2/users
+- /api/v2/crews  
+- /api/v2/equipment
+- /api/v2/default-tasks
+- /api/v2/jobs
+- /api/v2/tasks
+- /api/v2/entries
+- /api/v2/entry-details
+- /api/v2/clock-entries
+- /api/v2/events
+- /api/v2/notes
+- /api/v2/companies
+- /api/v2/customers
+- /api/v2/customer-companies
+- /api/v2/audits
+- /api/v2/settings
+- /api/v2/default-notes
+- /api/v2/jotform-forms
+- /api/v2/jotform-questions
+- /api/v2/used-job-colors
+- /api/v2/labor-forecast-types
+- /api/v2/uploaded-files
+
+Exceptions and special endpoints:
+
+For full details, see the original api-summary.txt.
