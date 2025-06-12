@@ -371,12 +371,10 @@ export function useChatAgent(OPENAI_API_KEY: string) {
         // Create message with API call information
         const messageWithApiCall: ChatMessage = {
           role: "assistant",
-          content: mentionsApiCall
-            ? aiMsg
-            : aiMsg
-                .replace(/\n/g, " ")
-                .replace(/```[\s\S]*?```/g, "")
-                .trim(),
+          content: aiMsg
+            .replace(/```[\s\S]*?```/g, "")
+            .replace(/\n+/g, " ")
+            .trim(),
           apiCall: {
             plan,
             result: currentApiResult,
