@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+/* Clean approach - let Tailwind handle dark mode completely */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#app {
+  height: 100%;
+}
+
+/* Debug element to test light/dark variants */
+.dark-mode-test {
+  position: fixed;
+  top: 80px;
+  right: 4rem;
+  padding: 8px;
+  background: gray;
+  color: white;
+  font-size: 12px;
+  z-index: 1000;
+}
+
+.light .dark-mode-test {
+  background: blue;
+  color: white;
+}
+
+.dark .dark-mode-test {
+  background: green;
+  color: white;
+}
