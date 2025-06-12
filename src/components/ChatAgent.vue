@@ -1,8 +1,39 @@
 <script setup lang="ts">
+import { ref } from "vue"
 import { useChatAgent } from "./chat-agent"
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
 const { messages, input, isLoading, handleSubmit, handleMic } = useChatAgent(OPENAI_API_KEY)
+
+// Track which API call details are expanded
+const expandedApiCalls = ref<Set<number>>(new Set())
+
+function toggleApiCall(messageIndex: number) {
+  if (expandedApiCalls.value.has(messageIndex)) {
+    expandedApiCalls.value.delete(messageIndex)
+  } else {
+    expandedApiCalls.value.add(messageIndex)
+  }
+}
+
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`
+  return `${(ms / 1000).toFixed(1)}s`
+}
+
+function getStatusColor(result: any): string {
+  if (result.success) return "text-green-600 dark:text-green-400"
+  if (result.networkError) return "text-red-600 dark:text-red-400"
+  if (result.httpStatus === 422 || result.httpStatus === 400) return "text-yellow-600 dark:text-yellow-400"
+  return "text-red-600 dark:text-red-400"
+}
+
+function getStatusIcon(result: any): string {
+  if (result.success) return "✅"
+  if (result.networkError) return "🔌"
+  if (result.httpStatus === 422 || result.httpStatus === 400) return "⚠️"
+  return "❌"
+}
 </script>
 
 <template>
@@ -18,6 +49,74 @@ const { messages, input, isLoading, handleSubmit, handleMic } = useChatAgent(OPE
           class="inline-block rounded-lg px-4 py-2 max-w-[80%] shadow-sm"
         >
           {{ msg.content }}
+        </div>
+
+        <!-- API Call Details (collapsible) -->
+        <div v-if="msg.apiCall && msg.role === 'assistant'" class="mt-2 max-w-[80%]">
+          <button
+            @click="toggleApiCall(i)"
+            class="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 dark:hover:bg-gray-750 rounded-lg transition-colors border border-gray-300 dark:border-gray-600"
+          >
+            <span class="text-lg">🔧</span>
+            <span class="font-medium">API Call</span>
+            <span :class="getStatusColor(msg.apiCall.result)">{{ getStatusIcon(msg.apiCall.result) }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ msg.apiCall.plan.method }} {{ msg.apiCall.plan.endpoint }}
+            </span>
+            <span class="text-xs">{{ expandedApiCalls.has(i) ? "▼" : "▶" }}</span>
+          </button>
+
+          <div
+            v-if="expandedApiCalls.has(i)"
+            class="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
+          >
+            <div class="space-y-2">
+              <!-- Request Details -->
+              <div>
+                <span class="font-semibold text-gray-700 dark:text-gray-300">Request:</span>
+                <div class="mt-1 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">
+                  {{ msg.apiCall.plan.method }} {{ msg.apiCall.plan.endpoint }}
+                  <div v-if="msg.apiCall.plan.params" class="mt-1 text-gray-600 dark:text-gray-400">
+                    Params: {{ JSON.stringify(msg.apiCall.plan.params, null, 2) }}
+                  </div>
+                  <div v-if="msg.apiCall.plan.body" class="mt-1 text-gray-600 dark:text-gray-400">
+                    Body: {{ JSON.stringify(msg.apiCall.plan.body, null, 2) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Response Details -->
+              <div>
+                <span class="font-semibold text-gray-700 dark:text-gray-300">Response:</span>
+                <div class="mt-1">
+                  <div class="flex items-center gap-2 text-xs">
+                    <span :class="getStatusColor(msg.apiCall.result)">
+                      {{ msg.apiCall.result.success ? "Success" : "Failed" }}
+                    </span>
+                    <span class="text-gray-500 dark:text-gray-400">•</span>
+                    <span class="text-gray-600 dark:text-gray-400">
+                      HTTP {{ msg.apiCall.result.httpStatus || "N/A" }}
+                    </span>
+                    <span class="text-gray-500 dark:text-gray-400">•</span>
+                    <span class="text-gray-600 dark:text-gray-400">
+                      {{ formatDuration(msg.apiCall.result.executionTime || 0) }}
+                    </span>
+                  </div>
+
+                  <div v-if="msg.apiCall.result.error" class="mt-1 text-xs text-red-600 dark:text-red-400">
+                    Error: {{ msg.apiCall.result.error }}
+                  </div>
+
+                  <div
+                    v-if="msg.apiCall.result.data"
+                    class="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded max-h-32 overflow-y-auto"
+                  >
+                    {{ JSON.stringify(msg.apiCall.result.data, null, 2) }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div v-if="isLoading" class="text-center text-gray-400 dark:text-gray-500">

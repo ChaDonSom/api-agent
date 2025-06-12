@@ -74,12 +74,20 @@ You now have enhanced capabilities to detect and handle failures:
    - Check authentication/authorization issues
 
 **WHEN API CALLS FAIL:**
-- Analyze the specific error (404 = endpoint not found, 401 = auth issue, 422 = validation error, etc.)
+- Analyze the specific error (404 = endpoint not found, 401 = auth issue, 422/400 = validation error, etc.)
 - Try alternative approaches (different endpoints, simpler requests)
 - If you get HTTP 404, the endpoint might not exist - try related endpoints
-- If you get HTTP 422/400, check your request format and required fields
+- If you get HTTP 422/400, check your request format and required fields - these errors usually provide detailed validation messages
 - If you get HTTP 401/403, there might be authentication/authorization issues
 - For network errors, acknowledge the connection problem
+
+**SPECIAL HANDLING FOR 422/400 VALIDATION ERRORS:**
+When you receive a 422 or 400 error, you get extra retry attempts because these errors usually explain exactly what's wrong:
+1. Read the error response data carefully - it often contains specific field validation messages
+2. Check required fields, data types, and format requirements
+3. Verify the request body structure matches the expected schema
+4. Try with a simpler request if the complex one fails
+5. You get up to 3 additional retry attempts for validation errors
 
 **CONFIDENCE EVALUATION:**
 Be honest about your progress:
@@ -208,8 +216,18 @@ export function useSpeechHelpers(OPENAI_API_KEY: string) {
   return { startListening, speak }
 }
 
+export type ChatMessage = {
+  role: "user" | "assistant"
+  content: string
+  apiCall?: {
+    plan: ApiCallPlan
+    result: ApiExecutionResult
+    timestamp: number
+  }
+}
+
 export function useChatAgent(OPENAI_API_KEY: string) {
-  const messages = ref<{ role: "user" | "assistant"; content: string }[]>([])
+  const messages = ref<ChatMessage[]>([])
   const input = ref("")
   const isLoading = ref(false)
   const speechMode = ref(false)
@@ -240,6 +258,8 @@ export function useChatAgent(OPENAI_API_KEY: string) {
     let lastPlan: ApiCallPlan | null = null
     let maxTurns = 5
     let turn = 0
+    let retryCount422 = 0 // Track 422 retries specifically
+    const maxRetries422 = 3 // Allow more retries for validation errors
 
     // Track what the agent intended vs what actually happened
     let intentionTracker = {
@@ -267,15 +287,38 @@ export function useChatAgent(OPENAI_API_KEY: string) {
           resultMessage = `API call SUCCEEDED: ${lastPlan.method} ${lastPlan.endpoint} (${
             lastApiResult.executionTime
           }ms, HTTP ${lastApiResult.httpStatus})\nData: ${JSON.stringify(lastApiResult.data)}`
+          retryCount422 = 0 // Reset retry count on success
         } else {
           const errorType = lastApiResult.networkError ? "NETWORK ERROR" : "API ERROR"
+          const is422Error = lastApiResult.httpStatus === 422 || lastApiResult.httpStatus === 400
+
           resultMessage = `API call FAILED (${errorType}): ${lastPlan.method} ${lastPlan.endpoint} (${
             lastApiResult.executionTime
           }ms)\nError: ${lastApiResult.error}\nHTTP Status: ${lastApiResult.httpStatus || "N/A"}\nURL: ${
             lastApiResult.requestUrl
           }`
+
           if (lastApiResult.data) {
             resultMessage += `\nResponse Data: ${JSON.stringify(lastApiResult.data)}`
+          }
+
+          // Special handling for 422/400 errors - give more specific guidance
+          if (is422Error) {
+            retryCount422++
+            if (retryCount422 <= maxRetries422) {
+              resultMessage += `\n\nThis is a validation error (HTTP ${
+                lastApiResult.httpStatus
+              }). The response data usually explains what's wrong with the request format. You have ${
+                maxRetries422 - retryCount422 + 1
+              } more attempts to fix this. Please:
+1. Carefully read the error message in the response data
+2. Check the request body structure and required fields
+3. Verify the endpoint path and method are correct
+4. Ensure all required parameters are included
+5. Try a simpler version of the request if needed`
+            } else {
+              resultMessage += `\n\nYou've reached the maximum retry limit for this validation error. Consider trying a different approach or a simpler request.`
+            }
           }
         }
 
@@ -315,8 +358,34 @@ export function useChatAgent(OPENAI_API_KEY: string) {
       const plan = extractApiPlan(aiMsg)
       if (plan) {
         intentionTracker.actualApiCall = true
-        messages.value.push({ role: "assistant", content: aiMsg })
-        lastApiResult = await executeApiPlan(plan)
+
+        // For 422 errors, give more context-aware retries
+        const is422Retry = retryCount422 > 0 && retryCount422 <= maxRetries422
+        if (is422Retry) {
+          // Don't increment turn count for 422 retries to give more chances
+          turn--
+        }
+
+        const currentApiResult = await executeApiPlan(plan)
+
+        // Create message with API call information
+        const messageWithApiCall: ChatMessage = {
+          role: "assistant",
+          content: mentionsApiCall
+            ? aiMsg
+            : aiMsg
+                .replace(/\n/g, " ")
+                .replace(/```[\s\S]*?```/g, "")
+                .trim(),
+          apiCall: {
+            plan,
+            result: currentApiResult,
+            timestamp: Date.now(),
+          },
+        }
+
+        messages.value.push(messageWithApiCall)
+        lastApiResult = currentApiResult
         lastPlan = plan
         intentionTracker.apiCallSuccess = lastApiResult.success
         if (!lastApiResult.success) {
@@ -363,11 +432,13 @@ Reply with CONFIDENT if you have done all you can and have sufficient informatio
       if (turn > 1) {
         const hasFailedCalls = intentionTracker.apiCallErrors.length > 0
         const hasIntentionMismatch = intentionTracker.intendedApiCall && !intentionTracker.actualApiCall
+        const has422Retries = retryCount422 > 0
 
-        if (hasFailedCalls || hasIntentionMismatch) {
+        if (hasFailedCalls || hasIntentionMismatch || has422Retries) {
           confidencePrompt += `\n\nIMPORTANT CONTEXT FOR THIS TURN:
 - API call intention vs execution mismatch: ${hasIntentionMismatch}
 - API call failures: ${hasFailedCalls}
+- 422/validation error retries attempted: ${retryCount422}/${maxRetries422}
 - Error details: ${intentionTracker.apiCallErrors.join(", ")}`
         }
       }
