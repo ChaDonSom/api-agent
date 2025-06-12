@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>API Call Test</title>
+  </head>
+  <body>
+    <h1>API Call Extraction Test</h1>
+    <div id="results"></div>
+
+    <script>
+      // Test the API call extraction logic
+      function extractApiPlan(text) {
+        console.log("🔍 Extracting from:", text)
+
+        const codeBlocks = text.match(/```[\s\S]*?```/g)
+        console.log("📝 Found code blocks:", codeBlocks)
+
+        if (codeBlocks) {
+          for (const block of codeBlocks) {
+            const content = block.replace(/```/g, "").trim()
+            const lines = content
+              .split("\n")
+              .map((l) => l.trim())
+              .filter(Boolean)
+
+            if (lines.length > 0) {
+              const firstLine = lines[0]
+              const match = firstLine.match(/^(GET|POST|PUT|DELETE|PATCH)\s+(\/\S+)/i)
+              if (match) {
+                const method = match[1].toUpperCase()
+                let endpoint = match[2].replace(/[`\s]+$/g, "")
+
+                console.log("✅ Found API call:", { method, endpoint })
+                return { method, endpoint }
+              }
+            }
+          }
+        }
+
+        console.log("❌ No API call found")
+        return null
+      }
+
+      // Test cases
+      const tests = [
+        "I will fetch users.\n\n```\nGET /api/v2/users\n```",
+        "```\nGET /api/v2/users\n```",
+        "I will now fetch the list of users from the system.",
+        "Let me get the users:\n\n```\nGET /api/v2/users\n```",
+      ]
+
+      tests.forEach((test, i) => {
+        console.log(`\n--- Test ${i + 1} ---`)
+        const result = extractApiPlan(test)
+
+        const div = document.createElement("div")
+        div.innerHTML = `
+                <h3>Test ${i + 1}</h3>
+                <p><strong>Input:</strong> ${test.replace(/\n/g, "\\n")}</p>
+                <p><strong>Result:</strong> ${result ? JSON.stringify(result) : "null"}</p>
+                <hr>
+            `
+        document.getElementById("results").appendChild(div)
+      })
+    </script>
+  </body>
+</html>

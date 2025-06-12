@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { ref } from "vue"
-import { useChatAgent } from "./chat-agent"
+import { useEnhancedChatAgent } from "./enhanced-chat-agent"
 
 const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY || ""
-const { messages, input, isLoading, handleSubmit, handleMic } = useChatAgent(OPENAI_API_KEY)
+const { messages, input, isLoading, sendMessage, memoryManager } = useEnhancedChatAgent(OPENAI_API_KEY)
 
 // Track which API call details are expanded
 const expandedApiCalls = ref<Set<number>>(new Set())
+
+function handleSubmit() {
+  sendMessage()
+}
+
+function handleMic() {
+  // Note: Speech functionality not yet implemented in enhanced version
+  // Could be added back if needed
+  console.log("Microphone functionality not yet implemented in enhanced version")
+}
 
 function toggleApiCall(messageIndex: number) {
   if (expandedApiCalls.value.has(messageIndex)) {
@@ -34,10 +44,25 @@ function getStatusIcon(result: any): string {
   if (result.httpStatus === 422 || result.httpStatus === 400) return "⚠️"
   return "❌"
 }
+
+function showMemoryStats() {
+  console.log("Memory insights:", memoryManager.getMemoryInsights())
+  console.log("Global learnings:", memoryManager.getGlobalLearnings())
+}
 </script>
 
 <template>
   <div class="flex flex-col h-screen max-w-5xl p-4 mx-auto">
+    <!-- Memory Stats Button (for debugging) -->
+    <div class="mb-2">
+      <button
+        @click="showMemoryStats"
+        class="px-3 py-1 text-xs text-white transition-colors bg-purple-500 rounded-lg hover:bg-purple-600"
+        title="Show memory stats in console"
+      >
+        🧠 Memory Stats
+      </button>
+    </div>
     <div class="flex-1 pr-2 mb-4 space-y-4 overflow-y-auto">
       <div v-for="(msg, i) in messages" :key="i" :class="msg.role === 'user' ? 'text-right' : 'text-left'">
         <div
@@ -55,7 +80,7 @@ function getStatusIcon(result: any): string {
         <div v-if="msg.apiCall && msg.role === 'assistant'" class="mt-2 max-w-[80%]">
           <button
             @click="toggleApiCall(i)"
-            class="flex items-center gap-2 px-3 py-2 text-sm bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 dark:hover:bg-gray-750 rounded-lg transition-colors border border-gray-300 dark:border-gray-600"
+            class="flex items-center gap-2 px-3 py-2 text-sm transition-colors bg-gray-100 border border-gray-300 rounded-lg dark:bg-gray-800 hover:bg-gray-150 dark:hover:bg-gray-750 dark:border-gray-600"
           >
             <span class="text-lg">🔧</span>
             <span class="font-medium">API Call</span>
@@ -68,13 +93,13 @@ function getStatusIcon(result: any): string {
 
           <div
             v-if="expandedApiCalls.has(i)"
-            class="mt-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 text-sm"
+            class="p-3 mt-2 text-sm border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
           >
             <div class="space-y-2">
               <!-- Request Details -->
               <div>
                 <span class="font-semibold text-gray-700 dark:text-gray-300">Request:</span>
-                <div class="mt-1 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded">
+                <div class="p-2 mt-1 font-mono text-xs bg-gray-100 rounded dark:bg-gray-900">
                   {{ msg.apiCall.plan.method }} {{ msg.apiCall.plan.endpoint }}
                   <div v-if="msg.apiCall.plan.params" class="mt-1 text-gray-600 dark:text-gray-400">
                     Params: {{ JSON.stringify(msg.apiCall.plan.params, null, 2) }}
@@ -109,7 +134,7 @@ function getStatusIcon(result: any): string {
 
                   <div
                     v-if="msg.apiCall.result.data"
-                    class="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-900 p-2 rounded max-h-32 overflow-y-auto"
+                    class="p-2 mt-2 overflow-y-auto font-mono text-xs bg-gray-100 rounded dark:bg-gray-900 max-h-32"
                   >
                     {{ JSON.stringify(msg.apiCall.result.data, null, 2) }}
                   </div>
