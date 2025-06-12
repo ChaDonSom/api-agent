@@ -1,10 +1,10 @@
 import { ref } from "vue"
 import { executeApiPlan } from "../agent-api"
-import type { ApiCallPlan } from "../agent-api"
+import type { ApiCallPlan, ApiExecutionResult } from "../agent-api"
 import apiSummary from "../../api-summary-condensed.txt?raw"
 
 export function getSystemPrompt() {
-  return `You are an AI agent that can plan and execute API calls to a real backend.
+  return `You are an AI agent that can plan and execute API calls to a real backend. You have enhanced self-awareness capabilities to detect and handle API failures.
 
 Available tools (API endpoints):
 ${apiSummary}
@@ -55,9 +55,41 @@ Body: {"name": "John Doe", "email": "john@example.com"}\`\`\`
 - \`\`\`PATCH /api/v2/users/batch  
 Body: {"resources": {"1": {"name": "New Name"}, "2": {"email": "new@email.com"}}}\`\`\`
 
+**ENHANCED FAILURE DETECTION & SELF-AWARENESS:**
+You now have enhanced capabilities to detect and handle failures:
+
+1. **API Call Tracking**: The system tracks whether you actually make API calls vs. just mention them
+2. **Detailed Error Reporting**: You receive detailed information about API failures including:
+   - HTTP status codes and error messages
+   - Network vs API errors
+   - Execution time and request details
+   - Response data (if any)
+
+3. **Self-Correction**: If you mention making an API call but don't provide the correct format, you'll be notified
+4. **Failure Analysis**: When API calls fail, consider these strategies:
+   - Check if the endpoint exists (try alternative endpoints)
+   - Verify request format (body structure, query parameters)
+   - Try simpler requests (fewer filters, no includes)
+   - Use different HTTP methods if appropriate
+   - Check authentication/authorization issues
+
+**WHEN API CALLS FAIL:**
+- Analyze the specific error (404 = endpoint not found, 401 = auth issue, 422 = validation error, etc.)
+- Try alternative approaches (different endpoints, simpler requests)
+- If you get HTTP 404, the endpoint might not exist - try related endpoints
+- If you get HTTP 422/400, check your request format and required fields
+- If you get HTTP 401/403, there might be authentication/authorization issues
+- For network errors, acknowledge the connection problem
+
+**CONFIDENCE EVALUATION:**
+Be honest about your progress:
+- CONFIDENT: You have sufficient data to answer the user's question
+- NOT CONFIDENT: You need to try more approaches, retry failed calls, or get more data
+
 You may use each turn to either:
 1. Make an API call (by outputting the call in the exact format above)
 2. Think and reason about information you already have
+3. Analyze and respond to API failures with alternative approaches
 
 Before making an API call, check if you already have the needed information in the chat history. If you do, use it directly. Only make an API call if you need new or updated data.
 
@@ -204,21 +236,57 @@ export function useChatAgent(OPENAI_API_KEY: string) {
       { role: "system", content: getSystemPrompt() },
       ...messages.value.map((m) => ({ role: m.role, content: m.content })),
     ]
-    let lastApiResult: any = null
+    let lastApiResult: ApiExecutionResult | null = null
     let lastPlan: ApiCallPlan | null = null
     let maxTurns = 5
     let turn = 0
 
+    // Track what the agent intended vs what actually happened
+    let intentionTracker = {
+      intendedApiCall: false,
+      actualApiCall: false,
+      apiCallSuccess: false,
+      apiCallErrors: [] as string[],
+    }
+
     while (continueLoop && turn < maxTurns) {
       turn++
+
+      // Reset intention tracker for this turn
+      intentionTracker = {
+        intendedApiCall: false,
+        actualApiCall: false,
+        apiCallSuccess: false,
+        apiCallErrors: [],
+      }
+
+      // Add previous API result to context if we have one
       if (lastApiResult && lastPlan) {
+        let resultMessage = ""
+        if (lastApiResult.success) {
+          resultMessage = `API call SUCCEEDED: ${lastPlan.method} ${lastPlan.endpoint} (${
+            lastApiResult.executionTime
+          }ms, HTTP ${lastApiResult.httpStatus})\nData: ${JSON.stringify(lastApiResult.data)}`
+        } else {
+          const errorType = lastApiResult.networkError ? "NETWORK ERROR" : "API ERROR"
+          resultMessage = `API call FAILED (${errorType}): ${lastPlan.method} ${lastPlan.endpoint} (${
+            lastApiResult.executionTime
+          }ms)\nError: ${lastApiResult.error}\nHTTP Status: ${lastApiResult.httpStatus || "N/A"}\nURL: ${
+            lastApiResult.requestUrl
+          }`
+          if (lastApiResult.data) {
+            resultMessage += `\nResponse Data: ${JSON.stringify(lastApiResult.data)}`
+          }
+        }
+
         loopMessages.push({
           role: "system",
-          content: `API call result for ${lastPlan.method} ${lastPlan.endpoint}: ${JSON.stringify(lastApiResult)}`,
+          content: resultMessage,
         })
         lastApiResult = null
         lastPlan = null
       }
+
       const res = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -232,16 +300,78 @@ export function useChatAgent(OPENAI_API_KEY: string) {
       })
       const data = await res.json()
       let aiMsg = data.choices?.[0]?.message?.content || "Sorry, I could not respond."
+
+      // Check if agent intends to make an API call
+      const mentionsApiCall =
+        /\b(GET|POST|PUT|DELETE|PATCH)\s+\/api/i.test(aiMsg) ||
+        /I['\s]*ll\s+(make|call|fetch|get|post|update|delete)/i.test(aiMsg) ||
+        /let me\s+(make|call|fetch|get|post|update|delete)/i.test(aiMsg) ||
+        aiMsg.includes("```")
+
+      if (mentionsApiCall) {
+        intentionTracker.intendedApiCall = true
+      }
+
       const plan = extractApiPlan(aiMsg)
       if (plan) {
+        intentionTracker.actualApiCall = true
         messages.value.push({ role: "assistant", content: aiMsg })
         lastApiResult = await executeApiPlan(plan)
         lastPlan = plan
+        intentionTracker.apiCallSuccess = lastApiResult.success
+        if (!lastApiResult.success) {
+          intentionTracker.apiCallErrors.push(lastApiResult.error || "Unknown error")
+        }
         loopMessages.push({ role: "assistant", content: aiMsg })
         continue
       }
+
+      // If agent intended to make API call but didn't, give it feedback
+      if (intentionTracker.intendedApiCall && !intentionTracker.actualApiCall) {
+        loopMessages.push({ role: "assistant", content: aiMsg })
+        loopMessages.push({
+          role: "system",
+          content: `ATTENTION: You mentioned making an API call but did not provide a properly formatted API call. You need to use the exact format:
+\`\`\`
+METHOD /api/endpoint
+Body: {json_data}
+\`\`\`
+
+Your response suggested an API call but no valid API call was extracted. Please try again with the correct format, or explain why you cannot make the call.`,
+        })
+        continue
+      }
+
       loopMessages.push({ role: "assistant", content: aiMsg })
-      const confidencePrompt = `Based on the chat so far, have you done all you reasonably can to answer the user's question, given the available data and tools? Reply with CONFIDENT if you have done all you can, or NOT CONFIDENT if you believe there is still something you can try. Explain briefly.`
+
+      // Enhanced confidence evaluation that considers API execution status
+      let confidencePrompt = `Based on the chat so far, evaluate your progress:
+
+1. Have you done all you reasonably can to answer the user's question?
+2. Did any API calls fail that you should retry or approach differently?
+3. Are you missing critical information that you could obtain?
+
+Consider these factors:
+- API call success/failure status
+- Whether you intended to make API calls but didn't
+- Whether you have sufficient data to answer the question
+- Whether there are alternative approaches you haven't tried
+
+Reply with CONFIDENT if you have done all you can and have sufficient information, or NOT CONFIDENT if you should continue trying. Explain your reasoning briefly.`
+
+      // Add API execution context to confidence evaluation
+      if (turn > 1) {
+        const hasFailedCalls = intentionTracker.apiCallErrors.length > 0
+        const hasIntentionMismatch = intentionTracker.intendedApiCall && !intentionTracker.actualApiCall
+
+        if (hasFailedCalls || hasIntentionMismatch) {
+          confidencePrompt += `\n\nIMPORTANT CONTEXT FOR THIS TURN:
+- API call intention vs execution mismatch: ${hasIntentionMismatch}
+- API call failures: ${hasFailedCalls}
+- Error details: ${intentionTracker.apiCallErrors.join(", ")}`
+        }
+      }
+
       const confidenceRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -259,6 +389,7 @@ export function useChatAgent(OPENAI_API_KEY: string) {
       })
       const confidenceData = await confidenceRes.json()
       const confidenceMsg = confidenceData.choices?.[0]?.message?.content || "NOT CONFIDENT"
+
       if (!/NOT CONFIDENT/i.test(confidenceMsg)) {
         const summaryPrompt = `You have completed your reasoning and are confident in your answer. Please provide a clear, concise final answer to the user's original question: "${userMsg}" using all information and results from the chat so far. Only output your answer to the user, not your internal reasoning or API call details.`
         const summaryRes = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -287,8 +418,9 @@ export function useChatAgent(OPENAI_API_KEY: string) {
         loopMessages.push({ role: "assistant", content: confidenceMsg })
       }
     }
+
     if (continueLoop) {
-      const explainPrompt = `You have reached the maximum number of reasoning turns and are still NOT CONFIDENT. Please explain to the user, in clear and concise language, why a complete answer is not possible, using all information and results from the chat so far. Be transparent about any limitations (such as the data being from a mock API, or missing information). Only output your explanation to the user.`
+      const explainPrompt = `You have reached the maximum number of reasoning turns and are still NOT CONFIDENT. Please explain to the user, in clear and concise language, why a complete answer is not possible, using all information and results from the chat so far. Be transparent about any limitations (such as API failures, network issues, missing information, or data being from a test environment). Only output your explanation to the user.`
       const explainRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
