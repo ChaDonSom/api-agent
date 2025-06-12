@@ -89,6 +89,13 @@ When you receive a 422 or 400 error, you get extra retry attempts because these 
 4. Try with a simpler request if the complex one fails
 5. You get up to 3 additional retry attempts for validation errors
 
+**HUMAN-FRIENDLY IDENTIFIERS PRIORITY:**
+Always prioritize using human-recognizable identifiers when talking about people and things:
+- Use names, titles, descriptions, or other human-readable identifiers instead of just numeric IDs
+- If your initial API call doesn't return resources with human-friendly identifiers, you can make up to 3 additional attempts to find resources that have recognizable names, descriptions, or other human-readable information
+- Include fields like 'name', 'title', 'description', 'email' in your requests when possible
+- When presenting results, always lead with human-readable information (e.g., "John Doe (ID: 123)" instead of just "User 123")
+
 **CONFIDENCE EVALUATION:**
 Be honest about your progress:
 - CONFIDENT: You have sufficient data to answer the user's question
@@ -106,6 +113,47 @@ When users ask for complex data analysis, use the search endpoints with appropri
 After each turn, wait for the user or system to provide new information before continuing.
 
 If you have enough information to answer the user's question, do so clearly and concisely.`
+}
+
+function checkForHumanFriendlyData(data: any): boolean {
+  if (!data) return false
+
+  // Handle array responses (list endpoints)
+  if (Array.isArray(data)) {
+    if (data.length === 0) return false
+    // Check if any item in the array has human-friendly fields
+    return data.some((item) => hasHumanFriendlyFields(item))
+  }
+
+  // Handle paginated responses
+  if (data.data && Array.isArray(data.data)) {
+    if (data.data.length === 0) return false
+    return data.data.some((item: any) => hasHumanFriendlyFields(item))
+  }
+
+  // Handle single object responses
+  return hasHumanFriendlyFields(data)
+}
+
+function hasHumanFriendlyFields(item: any): boolean {
+  if (!item || typeof item !== "object") return false
+
+  // Check for common human-friendly field names
+  const humanFriendlyFields = [
+    "name",
+    "title",
+    "description",
+    "email",
+    "first_name",
+    "last_name",
+    "display_name",
+    "full_name",
+  ]
+
+  return humanFriendlyFields.some((field) => {
+    const value = item[field]
+    return value && typeof value === "string" && value.trim().length > 0
+  })
 }
 
 export function extractApiPlan(text: string): ApiCallPlan | null {
@@ -260,6 +308,8 @@ export function useChatAgent(OPENAI_API_KEY: string) {
     let turn = 0
     let retryCount422 = 0 // Track 422 retries specifically
     const maxRetries422 = 3 // Allow more retries for validation errors
+    let humanFriendlyRetries = 0 // Track retries for finding human-friendly identifiers
+    const maxHumanFriendlyRetries = 3 // Allow up to 3 additional attempts
 
     // Track what the agent intended vs what actually happened
     let intentionTracker = {
@@ -267,6 +317,7 @@ export function useChatAgent(OPENAI_API_KEY: string) {
       actualApiCall: false,
       apiCallSuccess: false,
       apiCallErrors: [] as string[],
+      needsHumanFriendlyData: false, // Track if response lacks human-readable identifiers
     }
 
     while (continueLoop && turn < maxTurns) {
@@ -278,6 +329,7 @@ export function useChatAgent(OPENAI_API_KEY: string) {
         actualApiCall: false,
         apiCallSuccess: false,
         apiCallErrors: [],
+        needsHumanFriendlyData: false,
       }
 
       // Add previous API result to context if we have one
@@ -288,6 +340,20 @@ export function useChatAgent(OPENAI_API_KEY: string) {
             lastApiResult.executionTime
           }ms, HTTP ${lastApiResult.httpStatus})\nData: ${JSON.stringify(lastApiResult.data)}`
           retryCount422 = 0 // Reset retry count on success
+
+          // Check if we need human-friendly data and provide guidance
+          if (intentionTracker.needsHumanFriendlyData && humanFriendlyRetries <= maxHumanFriendlyRetries) {
+            const hasHumanFriendlyData = checkForHumanFriendlyData(lastApiResult.data)
+            if (!hasHumanFriendlyData) {
+              resultMessage += `\n\nNOTE: The API response contains data but lacks human-friendly identifiers (names, titles, descriptions, etc.). You have ${
+                maxHumanFriendlyRetries - humanFriendlyRetries + 1
+              } more attempts to find resources with human-recognizable information. Consider:
+1. Including additional fields in your request (e.g., ?include=user,customer)
+2. Trying different endpoints that might return more descriptive data
+3. Using search endpoints with broader criteria
+4. Looking for related resources that might have better human-readable information`
+            }
+          }
         } else {
           const errorType = lastApiResult.networkError ? "NETWORK ERROR" : "API ERROR"
           const is422Error = lastApiResult.httpStatus === 422 || lastApiResult.httpStatus === 400
@@ -368,6 +434,17 @@ export function useChatAgent(OPENAI_API_KEY: string) {
 
         const currentApiResult = await executeApiPlan(plan)
 
+        // Check if successful API response lacks human-friendly identifiers
+        if (currentApiResult.success && currentApiResult.data) {
+          const hasHumanFriendlyData = checkForHumanFriendlyData(currentApiResult.data)
+          if (!hasHumanFriendlyData && humanFriendlyRetries < maxHumanFriendlyRetries) {
+            intentionTracker.needsHumanFriendlyData = true
+            humanFriendlyRetries++
+            // Don't increment turn count for human-friendly data retries
+            turn--
+          }
+        }
+
         // Create message with API call information
         const messageWithApiCall: ChatMessage = {
           role: "assistant",
@@ -431,12 +508,22 @@ Reply with CONFIDENT if you have done all you can and have sufficient informatio
         const hasFailedCalls = intentionTracker.apiCallErrors.length > 0
         const hasIntentionMismatch = intentionTracker.intendedApiCall && !intentionTracker.actualApiCall
         const has422Retries = retryCount422 > 0
+        const needsHumanFriendlyData = intentionTracker.needsHumanFriendlyData
+        const hasHumanFriendlyRetries = humanFriendlyRetries > 0
 
-        if (hasFailedCalls || hasIntentionMismatch || has422Retries) {
+        if (
+          hasFailedCalls ||
+          hasIntentionMismatch ||
+          has422Retries ||
+          needsHumanFriendlyData ||
+          hasHumanFriendlyRetries
+        ) {
           confidencePrompt += `\n\nIMPORTANT CONTEXT FOR THIS TURN:
 - API call intention vs execution mismatch: ${hasIntentionMismatch}
 - API call failures: ${hasFailedCalls}
 - 422/validation error retries attempted: ${retryCount422}/${maxRetries422}
+- Human-friendly data search retries attempted: ${humanFriendlyRetries}/${maxHumanFriendlyRetries}
+- Current response needs better human-identifiable data: ${needsHumanFriendlyData}
 - Error details: ${intentionTracker.apiCallErrors.join(", ")}`
         }
       }
